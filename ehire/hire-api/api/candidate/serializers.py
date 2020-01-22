@@ -9,23 +9,38 @@ class CandidateCreateRequestSerializer(serializers.Serializer):
 	"""docstring for ClassName"""
 	name = serializers.CharField(required=True)
 	email = serializers.EmailField(required=False)
-	Resume = serializers.FileField(required=True)
-	candidate_url = serializers.CharField(required=True)
+	
+	profile_link = serializers.CharField(required=False)
 	mobile = serializers.IntegerField(required=True)
+	sslc= serializers.CharField(required=True)
+	puc = serializers.CharField(required=True)
+	degree = serializers.CharField(required=True)
+	master = serializers.CharField(required=True)
+	sslc_per = serializers.CharField(required=True)
+	puc_per=serializers.CharField(required=True)
+	degree_per=serializers.CharField(required=True)
+	master_per = serializers.CharField(required=True)
+	# certification = serializers.CharField(required=False)
+	work_experience = serializers.CharField(required=True)
+	previous_company = serializers.CharField(required=True)
+	work_location=serializers.CharField(required=True)
 	address = serializers.CharField(required=True)
-	min_ctc = serializers.FloatField(required=False)
-	max_ctc = serializers.FloatField(required=False)
+	resume = serializers.FileField(required=True)
+	previous_ctc = serializers.FloatField(required=False)
+	expected_ctc = serializers.FloatField(required=False)
 	notice_days=serializers.IntegerField(default=60)
 
 	# is_already_on_notice = serializers.IntegerField(required=False)
 	tech_skills = serializers.JSONField(required=False)
-	location=serializers.CharField(required=True)
+	status = serializers.CharField(required=True)
 
 	class Meta:
 		model = Candidate
-		fields = ['name','email','candidate_url','mobile','address',
-		'min_ctc','max_ctc','notice_days','notice_days','is_already_on_notice',
-		'tech_skills','location','status','Resume']          
+		fields = ['name','email','profile_link','mobile','address',
+		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
+		'master_per','work_experience','previous_company','work_location',
+		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
+		'status']          
 
 	def create(self, validated_data):
 		candidate= Candidate.objects.create(**validated_data)
@@ -39,14 +54,16 @@ class CandidateListSerializer(serializers.ModelSerializer):
 	"""
 	class Meta:
 		model=Candidate
-		fields=('id','name','email','candidate_url','mobile','address',
-			'min_ctc','max_ctc','notice_days','tech_skills','location','status',"Resume")
-
+		fields = ['name','email','profile_link','mobile','address',
+		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
+		'master_per','work_experience','previous_company','work_location',
+		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
+		'status']
 
 class CandidateUpdateSerializer(serializers.ModelSerializer):
 	name = serializers.CharField(required=True)
 	email = serializers.EmailField(required=False)
-	Resume = serializers.FileField(required=True)
+	resume = serializers.FileField(required=True)
 	candidate_url = serializers.CharField(required=True)
 	mobile = serializers.IntegerField(required=True)
 	address = serializers.CharField(required=True)
@@ -61,7 +78,7 @@ class CandidateUpdateSerializer(serializers.ModelSerializer):
 	def update(self,instance,validated_data):
 		instance.name =  validated_data.get('name', instance.name)
 		instance.email =  validated_data.get('email', instance.email)
-		instance.Resume =  validated_data.get('Resume', instance.Resume)
+		instance.resume =  validated_data.get('Resume', instance.Resume)
 		instance.candidate_url =  validated_data.get('candidate_url', instance.candidate_url)
 		instance.mobile =  validated_data.get('mobile', instance.mobile)
 		instance.address =  validated_data.get('address', instance.address)
@@ -74,24 +91,12 @@ class CandidateUpdateSerializer(serializers.ModelSerializer):
 	class Meta:
 		"""docstring for Meta"""
 		model=Candidate
-		fields = ['name','email','candidate_url','mobile','address',
-		'min_ctc','max_ctc','notice_days','notice_days',
-		'tech_skills','location','status','Resume'] 
+		fields = ['name','email','profile_link','mobile','address',
+		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
+		'master_per','work_experience','previous_company','work_location',
+		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
+		'status' ]
 			
-
-class CandidateResumeSerializer(serializers.ModelSerializer):
-
-	def update(self,instance,validated_data):
-		instance.Resume =  validated_data.get('Resume', instance.Resume)
-		instance.save()
-		return  instance
-
-	class Meta:
-		"""docstring for Meta"""
-		model=Candidate
-		fields = ('id',"Resume") 
-
-
 
 class DownloadResumeSerializer(serializers.ModelSerializer):
 	"""docstring for DownloadResumeSerializer"""
