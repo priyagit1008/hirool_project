@@ -38,7 +38,7 @@ class Candidate(TimeStampedModel):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	name = models.CharField(max_length=512, default=None, null=False, blank=False)
 	email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False)
-	candidate_url = models.CharField(max_length=1024, default=None, blank=True)
+	profile_link = models.CharField(max_length=1024, default=None, blank=True)
 	mobile = models.BigIntegerField(
 		validators=[
 			MinValueValidator(5000000000),
@@ -46,16 +46,26 @@ class Candidate(TimeStampedModel):
 		],
 		unique=True,
 		db_index=True,)
+	sslc=models.CharField(max_length=100,blank=False,default=None)
+	puc=models.CharField(max_length=100,blank=False,default=None)
+	degree = models.CharField(max_length=100,blank=False,default=None)
+	master=models.CharField(max_length=100,blank=True,default=None)
+	sslc_per=models.CharField(max_length=100,blank=False,default=None)
+	puc_per =models.CharField(max_length=100,blank=False,default=None)
+	degree_per=models.CharField(max_length=100,blank=False,default=None)
+	master_per=models.CharField(max_length=100,blank=True,default=None)
+	# certification=models.CharField(max_length=100,blank=False,default=None,null=True)
+	work_experience=models.CharField(max_length=100,blank=False,default=None)
+	previous_company=models.CharField(max_length=100,blank=False,default=None)
+	work_location=models.CharField(max_length=100,blank=False)
 	address = models.CharField(max_length=1024, default=None, null=False, blank=False)
-	Resume = models.FileField(upload_to = user_directory_path,blank=False, null=False)
-	min_ctc = models.FloatField(default=0.0)  # LPA
-	max_ctc = models.FloatField(default=1000.0)  # LPA
+	resume = models.FileField(upload_to = user_directory_path,blank=False, null=False)
+	previous_ctc = models.FloatField(default=0.0)  # LPA
+	expected_ctc = models.FloatField(default=1000.0)  # LPA
 
 	notice_days=models.IntegerField(default=60)
 	# is_already_on_notice= models.BooleanField(blank=True)
 	tech_skills = JSONField(default={}, blank=True, null=True)
-	location = models.CharField(max_length=512, default=None, null=True, blank=True)
-
 	status = models.CharField(max_length=256, choices=STATUS, default=STATUS.active)
 
 
