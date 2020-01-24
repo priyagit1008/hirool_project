@@ -15,15 +15,15 @@ class CandidateCreateRequestSerializer(serializers.Serializer):
 	sslc= serializers.CharField(required=True)
 	puc = serializers.CharField(required=True)
 	degree = serializers.CharField(required=True)
-	master = serializers.CharField(required=True)
+	master = serializers.CharField(required=False)
 	sslc_per = serializers.CharField(required=True)
 	puc_per=serializers.CharField(required=True)
 	degree_per=serializers.CharField(required=True)
 	master_per = serializers.CharField(required=True)
-	# certification = serializers.CharField(required=False)
-	work_experience = serializers.CharField(required=True)
+	certification = serializers.JSONField(required=True)
+	work_experience = serializers.FloatField(required=True)
 	previous_company = serializers.CharField(required=True)
-	work_location=serializers.CharField(required=True)
+	prepared_location=serializers.JSONField(required=True)
 	address = serializers.CharField(required=True)
 	resume = serializers.FileField(required=True)
 	previous_ctc = serializers.FloatField(required=False)
@@ -36,9 +36,9 @@ class CandidateCreateRequestSerializer(serializers.Serializer):
 
 	class Meta:
 		model = Candidate
-		fields = ['name','email','profile_link','mobile','address',
+		fields = ['name','email','profile_link ','mobile',
 		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
-		'master_per','work_experience','previous_company','work_location',
+		'master_per','certification','work_experience','previous_company','prepared_location',
 		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
 		'status']          
 
@@ -54,11 +54,12 @@ class CandidateListSerializer(serializers.ModelSerializer):
 	"""
 	class Meta:
 		model=Candidate
-		fields = ['name','email','profile_link','mobile','address',
-		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
-		'master_per','work_experience','previous_company','work_location',
-		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
-		'status']
+		# fields = ['name','email','profile_link','mobile',
+		# 'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
+		# 'master_per','certification','work_experience','previous_company','work_location',
+		# 'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
+		# 'status'] 
+		fields= '__all__'   
 
 class CandidateUpdateSerializer(serializers.ModelSerializer):
 	name = serializers.CharField(required=True)
@@ -91,9 +92,9 @@ class CandidateUpdateSerializer(serializers.ModelSerializer):
 	class Meta:
 		"""docstring for Meta"""
 		model=Candidate
-		fields = ['name','email','profile_link','mobile','address',
+		fields = ['name','email','mobile','address','profile_link ',
 		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
-		'master_per','work_experience','previous_company','work_location',
+		'master_per','work_experience','previous_company','prepared_location',
 		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
 		'status' ]
 			

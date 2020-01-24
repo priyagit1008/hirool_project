@@ -54,10 +54,10 @@ class Candidate(TimeStampedModel):
 	puc_per =models.CharField(max_length=100,blank=False,default=None)
 	degree_per=models.CharField(max_length=100,blank=False,default=None)
 	master_per=models.CharField(max_length=100,blank=True,default=None)
-	# certification=models.CharField(max_length=100,blank=False,default=None,null=True)
-	work_experience=models.CharField(max_length=100,blank=False,default=None)
+	certification=JSONField(default={},max_length=100,blank=True)
+	work_experience=models.FloatField(max_length=100,blank=False,default=None)
 	previous_company=models.CharField(max_length=100,blank=False,default=None)
-	work_location=models.CharField(max_length=100,blank=False)
+	prepared_location=JSONField(default={},max_length=100,blank=False)
 	address = models.CharField(max_length=1024, default=None, null=False, blank=False)
 	resume = models.FileField(upload_to = user_directory_path,blank=False, null=False)
 	previous_ctc = models.FloatField(default=0.0)  # LPA
