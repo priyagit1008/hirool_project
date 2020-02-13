@@ -4,6 +4,8 @@ from rest_framework import serializers
 from .models import Interview ,InterviewRound,InterviewStatus
 from libs.helpers import time_it
 
+from clients.models import Client
+
 
 
 
@@ -11,14 +13,15 @@ from libs.helpers import time_it
 class InterviewCreateRequestSerializer(serializers.Serializer):
 	date = serializers.DateTimeField(required=True)
 	location = serializers.CharField(required=True)
+	client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(),required=False)
   
 
 	# password = serializers.CharField(required=True, min_length=5)
 	class Meta:
 		model = Interview
 		fields = (
-			'id','client_id', 'job_id', 'interview_round_id', 'candidate_id', 'member_id',
-			'date', 'location', 'interview_status_id'
+			'id','client', 'job', 'interview_round', 'candidate', 'member',
+			'date', 'location', 'interview_status'
 		)
 
 	def create(self, validated_data):
@@ -35,8 +38,8 @@ class InterviewListSerializer(serializers.ModelSerializer):
 		model = Interview
 		
 		fields = (
-			'id','client_id', 'job_id', 'interview_round_id', 'candidate_id', 'member_id',
-			'date', 'location', 'interview_status_id'
+			'id','client', 'job', 'interview_round', 'candidate', 'member',
+			'date', 'location', 'interview_status'
 		)
 		# write_only_fields = ('password',)
 		# read_only_fields = ('id',)
