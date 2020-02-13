@@ -41,16 +41,35 @@ class Interview(TimeStampedModel):
 	"""docstring for Interview"""
 	
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,blank=False)
-	client_id =models.ForeignKey(Client,on_delete=models.PROTECT,related_name='Client',blank=False)
-	job_id = models.ForeignKey(Job,on_delete=models.PROTECT,related_name='Job',blank=False)
-	interview_round_id = models.ForeignKey(InterviewRound,on_delete=models.PROTECT,
-		related_name='InterviewRound',blank=False)
-	candidate_id = models.ForeignKey(Candidate,on_delete=models.PROTECT,
-		related_name='Candidate',blank=False)
-	member_id = models.ForeignKey(User,on_delete=models.PROTECT,related_name='User',blank=False)
+	# client_id = models.ForeignKey(Client,on_delete=models.PROTECT,related_name='client_id',blank=False,default=None)
+	client= models.ForeignKey(Client,
+        on_delete=models.PROTECT,
+        related_name='clients',null=True,blank=True,default=None)
+
+	job = models.ForeignKey(Job,on_delete=models.PROTECT,
+		related_name='Jobs',
+		blank=True,null=True,default=None)
+
+	interview_round= models.ForeignKey(InterviewRound,on_delete=models.PROTECT,
+		related_name='InterviewRounds',
+		blank=True,null=True,default=None)
+
+	candidate= models.ForeignKey(Candidate,on_delete=models.PROTECT,
+		related_name='Candidates',
+		blank=True,null=True,default=None)
+
+	member= models.ForeignKey(User,on_delete=models.PROTECT,
+		related_name='accounts',
+		blank=True,null=True,default=None)
+
 	date = models.DateTimeField()
-	location = models.CharField(max_length=256,blank=False)
-	interview_status_id = models.ForeignKey(InterviewStatus,on_delete=models.PROTECT,
-		related_name='InterviewStatus',blank=False)
+	location = models.CharField(max_length=256,blank=False,null=False,default=None)
+
+	interview_status= models.ForeignKey(InterviewStatus,on_delete=models.PROTECT,
+		related_name='InterviewStatus',
+		blank=True,default=None,null=True)
 	# status = models.CharField(max_length=256, choices=STATUS, default=STATUS.active)
-    
+
+
+# class Meta:
+#         abstract = True
