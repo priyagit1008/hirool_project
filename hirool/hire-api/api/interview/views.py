@@ -61,6 +61,7 @@ class InterviewViewSet(GenericViewSet):
 	serializers_dict = {
 		'add': InterviewCreateRequestSerializer,
 		'Interview_get': InterviewListSerializer,
+		'interview_list': InterviewListSerializer,
 		}
 
 
@@ -93,15 +94,19 @@ class InterviewViewSet(GenericViewSet):
 
 	@action(methods=['get', 'patch'],detail=False,permission_classes=[IsAuthenticated, ],)
 	def interview_get(self, request):
-		"""
-		Return client profile data and groups
-		"""
-		try:
-			id=request.GET["id"]
-			serializer=self.get_serializer(self.services.get_interview(id))
-			return Response(serializer.data,status.HTTP_200_OK)
-		except Exception as e:
-			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+		# try:
+		id=request.GET["id"]
+		print(id)
+		serializer=self.get_serializer(self.services.get_interview_service(id))
+		return Response(serializer.data,status.HTTP_200_OK)
+		# except Exception as e:
+		#   return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	def interview_list(self,request):
+		print(request.user.id)
+		data = self.get_serializer(self.queryset,many=True).data
+		return Response(data, status.HTTP_200_OK)
 
 ###################################################################################
 
@@ -157,6 +162,8 @@ class InterviewRoundViewSet(GenericViewSet):
 		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
 
+
+
 	@action(methods=['get', 'patch'],detail=False,permission_classes=[IsAuthenticated, ],)
 	def round_get(self, request):
 		"""
@@ -164,7 +171,7 @@ class InterviewRoundViewSet(GenericViewSet):
 		"""
 		try:
 			id=request.GET["id"]
-			serializer=self.get_serializer(self.services.get_Round(id))
+			serializer=self.get_serializer(self.services.get_Round_service(id))
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
@@ -232,7 +239,7 @@ class InterviewStatusViewSet(GenericViewSet):
 		"""
 		try:
 			id=request.GET["id"]
-			serializer=self.get_serializer(self.services.get_status(id))
+			serializer=self.get_serializer(self.services.get_status_service(id))
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)

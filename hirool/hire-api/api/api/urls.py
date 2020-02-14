@@ -10,7 +10,7 @@ from misc import views as misc_views
 from libs.custom_api_docs import include_docs_urls
 from clients import views as client_view
 from candidate import views as candidate_view
-from interviews import views as interview_view
+from interview import views as interview_view
 
 
 

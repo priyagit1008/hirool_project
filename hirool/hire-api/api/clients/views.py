@@ -132,18 +132,9 @@ class ClientViewSet(GenericViewSet):
     def org_update(self,request):
 
         try:
-            # data=request.data
-            # print(data)
-            # id=data["id"]
-            # print(id)
-            # id_obj=Client.objects.get(id=id)
-            # print(id_obj)
-            # serializer=self.get_serializer(id_obj,data=request.data)
-            # print(serializer)
-            # id=request.GET["id"]
             data=request.data
             id=data["id"]
-            serializer=self.get_serializer(self.services.update_client(id),data=request.data)
+            serializer=self.get_serializer(self.services.update_client_service(id),data=request.data)
             if not serializer.is_valid():
                 print(serializer.errors)
                 raise ParseException(BAD_REQUEST,serializer.errors)
@@ -170,7 +161,7 @@ class ClientViewSet(GenericViewSet):
         """
         try:
             id=request.GET["id"]
-            serializer=self.get_serializer(self.services.get_client(id))
+            serializer=self.get_serializer(self.services.get_client_service(id))
             return Response(serializer.data,status.HTTP_200_OK)
         except Exception as e:
             return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
@@ -255,7 +246,8 @@ class JobViewSet(GenericViewSet):
         """
         try:
             id = request.GET["id"]
-            serializer=self.get_serializer(self.services.get_job(id))
+            print(id)
+            serializer=self.get_serializer(self.services.get_job_service(id))
             return Response(serializer.data,status.HTTP_200_OK)
         except Exception as e:
             return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
@@ -274,25 +266,21 @@ class JobViewSet(GenericViewSet):
         """
         """
         try:
-           
             data=request.data
-            print(data)
-            job_id=data["id"]
-            serializer=self.get_serializer(self.services.update_job(id),data=request.data)
+            id=data["id"]
+            serializer=self.get_serializer(self.services.update_job_service(id),data=request.data)
             if not serializer.is_valid():
                 print(serializer.errors)
                 raise ParseException(BAD_REQUEST,serializer.errors)
             else:
-                # serializer.update(,serializer.data)
+                # serializer.update(id_obj,serializer.validated_data)
                 serializer.save()
                 print(serializer.validated_data)
                 return Response(serializer.data,status.HTTP_200_OK)
-        except Job.DoesNotExist:
-            return Response({"status": "Invalid Id"}, status.HTTP_404_NOT_FOUND)
         except Exception as e:
             # print(str(e))
             raise
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+            return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
 
     # @action(methods=['put'], detail=False, permission_classes=[IsAuthenticated, ],)

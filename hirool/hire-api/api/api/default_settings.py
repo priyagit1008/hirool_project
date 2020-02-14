@@ -60,9 +60,9 @@ LOCAL_APPS = [
     'accounts',
     'misc',
     'candidate',
-    'interviews',
     'gunicorn',
     'clients',
+    'interview',
 
 
 ]

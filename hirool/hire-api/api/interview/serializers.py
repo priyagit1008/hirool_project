@@ -4,7 +4,10 @@ from rest_framework import serializers
 from .models import Interview ,InterviewRound,InterviewStatus
 from libs.helpers import time_it
 
-from clients.models import Client
+from clients.models import Client,Job
+from candidate.models import Candidate
+# from interview.models import Interview,InterviewRound,InterviewStatus
+from accounts.models import User
 
 
 
@@ -14,7 +17,14 @@ class InterviewCreateRequestSerializer(serializers.Serializer):
 	date = serializers.DateTimeField(required=True)
 	location = serializers.CharField(required=True)
 	client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(),required=False)
-  
+	job=serializers.PrimaryKeyRelatedField(queryset=Job.objects.all(),required=False)
+	interview_round=serializers.PrimaryKeyRelatedField(queryset=InterviewRound.objects.all(),required=False)
+	candidate=serializers.PrimaryKeyRelatedField(queryset=Candidate.objects.all(),required=False)
+	member=serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False)
+	interview_status=serializers.PrimaryKeyRelatedField(queryset=InterviewStatus.objects.all(),required=False)
+
+
+
 
 	# password = serializers.CharField(required=True, min_length=5)
 	class Meta:

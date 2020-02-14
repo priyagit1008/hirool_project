@@ -128,7 +128,7 @@ class CandidateViewSet(GenericViewSet):
         try:
             id = request.GET["id"]
             print(id)
-            serializer = self.get_serializer(self.services.get_candidate(id))
+            serializer = self.get_serializer(self.services.get_candidate_service(id))
             print(serializer)
             return Response(serializer.data,status.HTTP_200_OK)
         except Exception as e:
@@ -144,7 +144,7 @@ class CandidateViewSet(GenericViewSet):
             data=request.data
             id=data['id']
             # id_obj=Candidate.objects.get(id=id)
-            serializer=self.get_serializer(self.services.update_candidate(id),data=request.data)
+            serializer=self.get_serializer(self.services.update_candidate_service(id),data=request.data)
             if not serializer.is_valid():
                 print(serializer.errors)
                 raise ParseException(BAD_REQUEST,serializer.errors)
@@ -169,7 +169,7 @@ class CandidateViewSet(GenericViewSet):
         try:   
             id=request.GET["id"]
             print(id)
-            resume_name = Candidate.objects.get(id=id).Resume
+            resume_name = Candidate.objects.get(id=id).resume
             # if not candidate_id.is_valid():
                 # raise ParseException("invalide id",BAD_REQUEST)
             # else:

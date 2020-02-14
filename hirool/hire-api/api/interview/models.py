@@ -71,5 +71,3 @@ class Interview(TimeStampedModel):
 	# status = models.CharField(max_length=256, choices=STATUS, default=STATUS.active)
 
 
-# class Meta:
-#         abstract = True

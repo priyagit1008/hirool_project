@@ -133,6 +133,7 @@ class JobListSerializer(serializers.ModelSerializer):
             'expiring_days', 'jd_extra'
         )
         # write_only_fields = ('password',)
+        # fields='__all__'
         read_only_fields = ('id',)
 
 class JobUpdateSerilaizer(serializers.ModelSerializer):
