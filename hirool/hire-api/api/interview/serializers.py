@@ -63,6 +63,13 @@ class CandidateGetSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Candidate
 		fields= '__all__' 
+
+class MemberGetSerializer(serializers.ModelSerializer):
+
+	class Meta:
+
+		model = User
+		fields= '__all__' 
 		
 		
 
@@ -71,6 +78,7 @@ class InterviewGetSerializer(serializers.ModelSerializer):
 	client = ClientGetSerializer()
 	job = JobGetSerializer()
 	candidate = CandidateGetSerializer()
+	member = MemberGetSerializer()
 
 	class Meta:
 		model = Interview
