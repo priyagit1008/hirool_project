@@ -25,16 +25,23 @@ from libs.exceptions import ParseException
 
 # app level imports
 from .models import Interview,InterviewRound,InterviewStatus
+# project level imports
+from clients.models import Client,Job
+from accounts.models import User
+from candidate.models import Candidate
 # from .services import ClientServices
 
 from .serializers import (
 	InterviewCreateRequestSerializer,
+	InterviewGetSerializer,
 	InterviewListSerializer,
 	InterviewRoundRequestSerializer,
 	InterviewRoundListSerializer,
 	InterviewStatusRequestSerializer,
 	InterviewStatusListSerializer
 )
+
+
 
 from .services import InterviewServices
 from .services import InterviewRound_Services
@@ -60,7 +67,7 @@ class InterviewViewSet(GenericViewSet):
 
 	serializers_dict = {
 		'add': InterviewCreateRequestSerializer,
-		'Interview_get': InterviewListSerializer,
+		'interview_get': InterviewGetSerializer,
 		'interview_list': InterviewListSerializer,
 		}
 
@@ -94,19 +101,23 @@ class InterviewViewSet(GenericViewSet):
 
 	@action(methods=['get', 'patch'],detail=False,permission_classes=[IsAuthenticated, ],)
 	def interview_get(self, request):
-		# try:
-		id=request.GET["id"]
-		print(id)
-		serializer=self.get_serializer(self.services.get_interview_service(id))
-		return Response(serializer.data,status.HTTP_200_OK)
-		# except Exception as e:
-		#   return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+		try:
+			id=request.GET["id"]
+			print(id)
+			serializer=self.get_serializer(self.services.get_interview_service(id))
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
 
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
 	def interview_list(self,request):
 		print(request.user.id)
 		data = self.get_serializer(self.queryset,many=True).data
 		return Response(data, status.HTTP_200_OK)
+
 
 ###################################################################################
 
@@ -243,6 +254,8 @@ class InterviewStatusViewSet(GenericViewSet):
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	
+
 	
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
 	def status_list(self,request):

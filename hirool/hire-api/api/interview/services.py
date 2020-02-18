@@ -1,4 +1,7 @@
 from .models import Interview,InterviewRound,InterviewStatus
+from clients.models import Client,Job
+from accounts.models import User
+from candidate.models import Candidate
 
 class InterviewServices:
 
@@ -6,12 +9,11 @@ class InterviewServices:
 		return Interview.objects.all()
 
 	def get_interview_service(self,id):
+		# interview_get=Interview.objects.get(id=id)
 		try:
 			return Interview.objects.get(id = id)
 		except Interview.DoesNotExists:
 			return Response("invalid id")
-
-
 
 
 class InterviewRound_Services:
@@ -37,4 +39,12 @@ class InterviewStatus_Services:
 			return InterviewStatus.objects.get(id=id)
 		except InterviewStatus.DoesNotExists:
 			return Response("invalid id")
+
+
+
+class Client_get_Service:
+	def get_service(self,id):
+		clients_get=Client.objects.get(id=id)
+
+
 			

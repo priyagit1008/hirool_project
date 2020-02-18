@@ -9,7 +9,6 @@ class CandidateServices:
 		return Candidate.objects.all()
 
 
-
 	def get_candidate_service(self,id):
 		try:
 			return Candidate.objects.get(id = id)

@@ -42,7 +42,35 @@ class InterviewCreateRequestSerializer(serializers.Serializer):
 
 		return interview
 
-class InterviewListSerializer(serializers.ModelSerializer):
+class ClientGetSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = Client
+		
+		fields = (
+			'id','name','web_link', 'headquarter', 'address', 'category',
+			'business_type', 'status', 'profile_desc', 'aggrement_doc',
+			'extra'
+		)
+class JobGetSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Job
+		fields = ('id', 'client_id', 'job_title', 'jd_url', 'tech_skills', 'location', 'job_type',
+			'min_exp', 'max_exp', 'min_relevant_exp', 'max_notice', 'min_ctc', 'max_ctc',
+			'expiring_days', 'jd_extra')
+
+class CandidateGetSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Candidate
+		fields= '__all__' 
+		
+		
+
+class InterviewGetSerializer(serializers.ModelSerializer):
+
+	client = ClientGetSerializer()
+	job = JobGetSerializer()
+	candidate = CandidateGetSerializer()
 
 	class Meta:
 		model = Interview
@@ -53,7 +81,15 @@ class InterviewListSerializer(serializers.ModelSerializer):
 		)
 		# write_only_fields = ('password',)
 		# read_only_fields = ('id',)
+class InterviewListSerializer(serializers.ModelSerializer):
 
+	class Meta:
+		model = Interview
+		
+		fields = (
+			'id','client', 'job', 'interview_round', 'candidate', 'member',
+			'date', 'location', 'interview_status'
+		)
 
 
 #########################################################################

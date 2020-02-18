@@ -121,11 +121,19 @@ class UserViewSet(GenericViewSet):
         return Response({'token': token},
                         status=status.HTTP_200_OK)
 
+
+
+
+
     @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ])
     def logout(self, request):
 
         request.user.auth_token.delete()
         return Response(status=status.HTTP_200_OK)
+
+
+
+
 
     @action(
         methods=['get'],
@@ -140,6 +148,8 @@ class UserViewSet(GenericViewSet):
         data = self.get_serializer(self.get_queryset(), many=True).data
         return Response(data, status.HTTP_200_OK)
 
+
+
     @action(
         methods=['get', 'patch'],
         detail=False,
@@ -152,8 +162,6 @@ class UserViewSet(GenericViewSet):
         """
         
         try:
-            # d = User.objects.get(id=input_id)
-            # data = self.get_serializer(d).data
             id = request.GET["id"]
             print(id)
             serializer = self.get_serializer(self.services.get_user(id))
@@ -163,12 +171,6 @@ class UserViewSet(GenericViewSet):
             print(e)
             return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
-
- # id = request.GET["id"]
- #            serializer = self.get_serializer(self.service.get_candidate(id))
- #            return Response(serializer.data,status.HTTP_200_OK)
- #        except Exception as e:
- #            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
 
@@ -185,18 +187,13 @@ class UserViewSet(GenericViewSet):
         try:
            
             data=request.data
-            # print(data)
             id=data['id']
-            # print(id)
-            # id_obj=User.objects.get(id=id)
-            # print(">>>>>",id_obj.first_name)
             serializer=self.get_serializer(self.services.update_user(id),data=request.data)
             # serializer=self.get_serializer(data=request.data)
             if not serializer.is_valid():
                 print(serializer.errors)
                 raise ParseException(BAD_REQUEST,serializer.errors)
             else:
-                # serializer.update(id_obj,serializer.data)
                 serializer.save()
                 print(serializer.data)
                 return Response(serializer.data,status.HTTP_200_OK)

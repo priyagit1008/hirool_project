@@ -34,23 +34,23 @@ from rest_framework import status
 from .models import Candidate
 
 from .serializers import (
-    CandidateCreateRequestSerializer,
-    CandidateListSerializer,
-    CandidateListSerializer,
-    CandidateUpdateSerializer,
-    # DownloadResumeSerializer
-    # CandidateResumeSerializer,
+	CandidateCreateRequestSerializer,
+	CandidateListSerializer,
+	CandidateListSerializer,
+	CandidateUpdateSerializer,
+	# DownloadResumeSerializer
+	# CandidateResumeSerializer,
 
 
-    # CandidateFileSerializer
-    )
+	# CandidateFileSerializer
+	)
 from .services import CandidateServices
 
 # project level imports
 from libs.constants import (
-        BAD_REQUEST,
-        BAD_ACTION,
-        
+		BAD_REQUEST,
+		BAD_ACTION,
+		
 )
 from api.default_settings import MEDIA_ROOT 
 
@@ -60,124 +60,115 @@ import codecs
 # Create your views here.
 
 class CandidateViewSet(GenericViewSet):
-    """docstring for candidateViewset"""
-    # queryset = Candidate.objects.all()
+	"""docstring for candidateViewset"""
+	
+	services = CandidateServices()
 
-    services = CandidateServices()
-
-    queryset = services.get_queryset()
-
-
-
-    filter_backends = (filters.OrderingFilter,)
-    # authentication_classes = (TokenAuthentication,)
-    parser_class = (FileUploadParser,)
-
-    ordering_fields = ('id',)
-    ordering = ('id',)
-    lookup_field = 'id'
-    http_method_names = ['get', 'post', 'put']
-
-    serializers_dict={
-            'candidate':CandidateCreateRequestSerializer,
-            'candidate_list':CandidateListSerializer,
-            'candidate_get':CandidateListSerializer,
-            'candidate_update':CandidateUpdateSerializer,
-            # 'download_file':DownloadResumeSerializer,
-            # 'upload_file':CandidateResumeSerializer
-            # 'candidate_file_view':CandidateFileSerializer,
-            }
-
-    def get_serializer_class(self):
-        """
-        """
-        try:
-            return self.serializers_dict[self.action]
-        except KeyError as key:
-            raise ParseException(BAD_ACTION, errors=key)
-
-
-    @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ],)
-    def candidate(self,request):
-        serializer = self.get_serializer(data=request.data)
-        print(serializer.is_valid())
-        if not serializer.is_valid():
-            print(serializer.errors)
-            raise ParseException(BAD_REQUEST, serializer.errors)
-        print("create candidate with", serializer.validated_data)
-
-        candidate= serializer.create(serializer.validated_data)
-        if candidate:
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({"status": "error"}, status.HTTP_404_NOT_FOUND) 
-
-
-        
-    
-    @action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
-    def candidate_list(self,request):
-        print(request.user.id)
-        data = self.get_serializer(self.queryset,many=True).data
-        return Response(data, status.HTTP_200_OK)
+	queryset = services.get_queryset()
 
 
 
-    @action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
-    def candidate_get(self,request):
-        try:
-            id = request.GET["id"]
-            print(id)
-            serializer = self.get_serializer(self.services.get_candidate_service(id))
-            print(serializer)
-            return Response(serializer.data,status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	filter_backends = (filters.OrderingFilter,)
+	# authentication_classes = (TokenAuthentication,)
+	parser_class = (FileUploadParser,)
+
+	ordering_fields = ('id',)
+	ordering = ('id',)
+	lookup_field = 'id'
+	http_method_names = ['get', 'post', 'put']
+
+	serializers_dict={
+			'candidate':CandidateCreateRequestSerializer,
+			'candidate_list':CandidateListSerializer,
+			'candidate_get':CandidateListSerializer,
+			'candidate_update':CandidateUpdateSerializer,
+			# 'download_file':DownloadResumeSerializer,
+			# 'upload_file':CandidateResumeSerializer
+			# 'candidate_file_view':CandidateFileSerializer,
+			}
+
+	def get_serializer_class(self):
+		"""
+		"""
+		try:
+			return self.serializers_dict[self.action]
+		except KeyError as key:
+			raise ParseException(BAD_ACTION, errors=key)
+
+
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ],)
+	def candidate(self,request):
+		serializer = self.get_serializer(data=request.data)
+		print(serializer.is_valid())
+		if not serializer.is_valid():
+			print(serializer.errors)
+			raise ParseException(BAD_REQUEST, serializer.errors)
+		print("create candidate with", serializer.validated_data)
+
+		candidate= serializer.create(serializer.validated_data)
+		if candidate:
+
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND) 
+
+
+		
+	
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	def candidate_list(self,request):
+		data = self.get_serializer(self.queryset,many=True).data
+		return Response(data, status.HTTP_200_OK)
+
+
+
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	def candidate_get(self,request):
+		try:
+			id = request.GET["id"]
+			serializer = self.get_serializer(self.services.get_candidate_service(id))
+			print(serializer)
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
 
 
-    @action(methods=['get','put'],detail=False,permission_classes=[IsAuthenticated,],)
-    def candidate_update(self,request):
-        try:
-           
-            data=request.data
-            id=data['id']
-            # id_obj=Candidate.objects.get(id=id)
-            serializer=self.get_serializer(self.services.update_candidate_service(id),data=request.data)
-            if not serializer.is_valid():
-                print(serializer.errors)
-                raise ParseException(BAD_REQUEST,serializer.errors)
-            else:
-                # serializer.update(id_obj,serializer.data)
-                serializer.save()
-                print(serializer.data)
-                return Response(serializer.data,status.HTTP_200_OK)
-        except Candidate.DoesNotExist:
-            return Response({"status": "Invalid Id"}, status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            # print(str(e))
-            raise
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	@action(methods=['get','put'],detail=False,permission_classes=[IsAuthenticated,],)
+	def candidate_update(self,request):
+		try:
+		   
+			data=request.data
+			id=data['id']
+			serializer=self.get_serializer(self.services.update_candidate_service(id),data=request.data)
+			if not serializer.is_valid():
+				print(serializer.errors)
+				raise ParseException(BAD_REQUEST,serializer.errors)
+			else:
+				# serializer.update(id_obj,serializer.data)
+				serializer.save()
+				print(serializer.data)
+				return Response(serializer.data,status.HTTP_200_OK)
+		except Candidate.DoesNotExist:
+			return Response({"status": "Invalid Id"}, status.HTTP_404_NOT_FOUND)
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
-    @action(
-        methods=['get'],
-        detail= False,
-        permission_classes=[],
-        )
-    def download_file(self,request, encoding='utf8'):
-        try:   
-            id=request.GET["id"]
-            print(id)
-            resume_name = Candidate.objects.get(id=id).resume
-            # if not candidate_id.is_valid():
-                # raise ParseException("invalide id",BAD_REQUEST)
-            # else:
-            resume_path = os.path.join(MEDIA_ROOT,str(resume_name))
-            FilePointer = open(resume_path,'rb')
-            response = HttpResponse((FilePointer),content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename="%s.docx"' %(resume_name)
-            return response
-        except Exception as e:
-            raise
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	@action(
+		methods=['get'],
+		detail= False,
+		permission_classes=[],
+		)
+	def download_file(self,request, encoding='utf8'):
+		try:   
+			id=request.GET["id"]
+			resume_name = Candidate.objects.get(id=id).resume
+			resume_path = os.path.join(MEDIA_ROOT,str(resume_name))
+			FilePointer = open(resume_path,'rb')
+			response = HttpResponse((FilePointer),content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+			response['Content-Disposition'] = 'attachment; filename="%s.docx"' %(resume_name)
+			return response
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)

@@ -222,6 +222,8 @@ class JobViewSet(GenericViewSet):
         except KeyError as key:
             raise ParseException(BAD_ACTION, errors=key)
 
+
+
     @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ],)
     def job(self, request):
         """
@@ -240,17 +242,21 @@ class JobViewSet(GenericViewSet):
 
         return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
+
+
+
     @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ],)
     def job_get(self, request):
         """
         """
         try:
             id = request.GET["id"]
-            print(id)
             serializer=self.get_serializer(self.services.get_job_service(id))
             return Response(serializer.data,status.HTTP_200_OK)
         except Exception as e:
             return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
 
 
     @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ],)
@@ -278,7 +284,6 @@ class JobViewSet(GenericViewSet):
                 print(serializer.validated_data)
                 return Response(serializer.data,status.HTTP_200_OK)
         except Exception as e:
-            # print(str(e))
             raise
             return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
