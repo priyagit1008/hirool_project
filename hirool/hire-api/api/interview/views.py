@@ -35,13 +35,12 @@ from .serializers import (
 	InterviewCreateRequestSerializer,
 	InterviewGetSerializer,
 	InterviewListSerializer,
+	InterviewUpdateSerilaizer,
 	InterviewRoundRequestSerializer,
 	InterviewRoundListSerializer,
 	InterviewStatusRequestSerializer,
 	InterviewStatusListSerializer
 )
-
-
 
 from .services import InterviewServices
 from .services import InterviewRound_Services
@@ -69,6 +68,7 @@ class InterviewViewSet(GenericViewSet):
 		'add': InterviewCreateRequestSerializer,
 		'interview_get': InterviewGetSerializer,
 		'interview_list': InterviewListSerializer,
+		'interview_update':InterviewUpdateSerilaizer,
 		}
 
 
@@ -117,6 +117,31 @@ class InterviewViewSet(GenericViewSet):
 		print(request.user.id)
 		data = self.get_serializer(self.queryset,many=True).data
 		return Response(data, status.HTTP_200_OK)
+
+
+
+	@action(methods=['put'],detail=False,permission_classes=[IsAuthenticated,],)
+	def interview_update(self, request):
+		"""
+		Return user profile data and groups
+		"""
+		try:
+		   
+			data=request.data
+			id=data['id']
+			serializer=self.get_serializer(self.services.update_interview_service(id),data=request.data)
+			# serializer=self.get_serializer(data=request.data)
+			if not serializer.is_valid():
+				print(serializer.errors)
+				raise ParseException(BAD_REQUEST,serializer.errors)
+			else:
+				serializer.save()
+				print(serializer.data)
+				return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			print(str(e))
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
 
 
 ###################################################################################
@@ -256,7 +281,7 @@ class InterviewStatusViewSet(GenericViewSet):
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 	
 
-	
+
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
 	def status_list(self,request):
 		print(request.user.id)

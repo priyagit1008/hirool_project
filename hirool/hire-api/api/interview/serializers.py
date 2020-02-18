@@ -98,7 +98,37 @@ class InterviewListSerializer(serializers.ModelSerializer):
 			'id','client', 'job', 'interview_round', 'candidate', 'member',
 			'date', 'location', 'interview_status'
 		)
+###################################################################################
+class InterviewUpdateSerilaizer(serializers.ModelSerializer):
 
+	date = serializers.DateTimeField(required=True)
+	location = serializers.CharField(required=True)
+	client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(),required=False)
+	job=serializers.PrimaryKeyRelatedField(queryset=Job.objects.all(),required=False)
+	interview_round=serializers.PrimaryKeyRelatedField(queryset=InterviewRound.objects.all(),required=False)
+	candidate=serializers.PrimaryKeyRelatedField(queryset=Candidate.objects.all(),required=False)
+	member=serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False)
+	interview_status=serializers.PrimaryKeyRelatedField(queryset=InterviewStatus.objects.all(),required=False)
+
+	# expiring_on = serializers.DateTimeField(required=False)
+
+	def update(self, instance, validated_data):
+		instance.date =  validated_data.get('date', instance.date)
+		instance.location =  validated_data.get('location', instance.location)
+		instance.client =  validated_data.get('client', instance.client)
+		instance.job =  validated_data.get('job', instance.job)
+		instance.interview_round =  validated_data.get('interview_round', instance.interview_round)
+		instance.candidate =  validated_data.get('candidate', instance.candidate)
+		instance.member =  validated_data.get('member', instance.member)
+		instance.interview_status =  validated_data.get('interview_status', instance.interview_status)
+		instance.save()
+		return instance
+
+	class Meta:
+		model = Interview
+		fields = '__all__'
+		
+		
 
 #########################################################################
 

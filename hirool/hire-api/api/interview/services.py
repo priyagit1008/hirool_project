@@ -15,6 +15,13 @@ class InterviewServices:
 		except Interview.DoesNotExists:
 			return Response("invalid id")
 
+	def update_interview_service(self,id):
+		try:
+			return Interview.objects.get(id = id)
+		except Interview.DoesNotExists:
+			return Response("invalid id")
+
+
 
 class InterviewRound_Services:
 
