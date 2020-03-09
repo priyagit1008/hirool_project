@@ -158,8 +158,13 @@ class JobUpdateSerilaizer(serializers.ModelSerializer):
 
     class Meta:
         model = Job
-        fields = ('job_title','jd_url','tech_skills','min_exp','max_exp')
-
+        # fields = ('job_title','jd_url','tech_skills','min_exp','max_exp')
+        fields = (
+            'id', 'client_id', 'job_title', 'jd_url', 'tech_skills', 'location', 'job_type',
+            'min_exp', 'max_exp', 'min_relevant_exp', 'max_notice', 'min_ctc', 'max_ctc',
+            'expiring_days', 'jd_extra'
+        )
+        # fields = '__all__'
         
         
         

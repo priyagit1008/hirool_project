@@ -11,6 +11,8 @@ from django.conf import settings
 # django imports
 # from django.http import FileResponse
 from django.http import HttpResponse
+from django.contrib.auth.decorators import permission_required
+
 
 from rest_framework import filters
 from rest_framework.decorators import action
@@ -32,6 +34,11 @@ from rest_framework import status
 
 # app level imports
 from .models import Candidate
+# from accounts.users import permissions
+from accounts.users.permissions import HiroolReadOnly,HiroolReadWrite
+
+
+
 
 from .serializers import (
 	CandidateCreateRequestSerializer,
@@ -61,7 +68,7 @@ import codecs
 
 class CandidateViewSet(GenericViewSet):
 	"""docstring for candidateViewset"""
-	
+	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = CandidateServices()
 
 	queryset = services.get_queryset()
@@ -96,7 +103,7 @@ class CandidateViewSet(GenericViewSet):
 			raise ParseException(BAD_ACTION, errors=key)
 
 
-	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ],)
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def candidate(self,request):
 		serializer = self.get_serializer(data=request.data)
 		print(serializer.is_valid())
@@ -114,19 +121,20 @@ class CandidateViewSet(GenericViewSet):
 
 		
 	
-	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def candidate_list(self,request):
 		data = self.get_serializer(self.queryset,many=True).data
 		return Response(data, status.HTTP_200_OK)
 
 
 
-	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadOnly],)
+	# @permission_required('action.user','action.action','action.permission')
 	def candidate_get(self,request):
 		try:
 			id = request.GET["id"]
 			serializer = self.get_serializer(self.services.get_candidate_service(id))
-			print(serializer)
+			# print(serializer)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
@@ -134,7 +142,7 @@ class CandidateViewSet(GenericViewSet):
 
 
 
-	@action(methods=['get','put'],detail=False,permission_classes=[IsAuthenticated,],)
+	@action(methods=['get','put'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def candidate_update(self,request):
 		try:
 		   
@@ -149,8 +157,8 @@ class CandidateViewSet(GenericViewSet):
 				serializer.save()
 				print(serializer.data)
 				return Response(serializer.data,status.HTTP_200_OK)
-		except Candidate.DoesNotExist:
-			return Response({"status": "Invalid Id"}, status.HTTP_404_NOT_FOUND)
+		# except Candidate.DoesNotExist:
+		#   return Response({"status": "Invalid Id"}, status.HTTP_404_NOT_FOUND)
 		except Exception as e:
 			raise
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
@@ -172,3 +180,44 @@ class CandidateViewSet(GenericViewSet):
 		except Exception as e:
 			raise
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+
+	@action(methods=['get'],detail=False,
+		permission_classes=[])
+	def candidate_filter(self,request):
+		try:
+			# experience= request.GET.get("work_experience")
+			skills=request.GET.get("tech_skills")
+			# print(experience)
+			# print(ctc)
+			candidate_obj = Candidate.objects.filter(tech_skills=skills)
+			print(candidate_obj)
+			print("user request ssuccessfull")
+			return Response({"status": "success"}, status.HTTP_200_OK)
+		except Exception as e:
+			print("user request not ssuccessfull")
+			return Response({"status": " not success"}, status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+
+
+
+
+
+
+
+
+	# @action(methods=['get'],detail=False,permission_classes=[])
+	# def filter_skills(self,request):
+	# 	try:
+	# 		skills=request.GET.get("tech_skills")
+	# 		print(tech_skills)
+	# 		skill_obj=Candidate.objects.filter(Q())
+
+
+		pass
+	

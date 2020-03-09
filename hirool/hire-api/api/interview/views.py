@@ -13,6 +13,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
 # from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
+from accounts.users.permissions import HiroolReadOnly,HiroolReadWrite
 
 
 # project level imports
@@ -48,7 +49,7 @@ from .services import InterviewStatus_Services
 
 class InterviewViewSet(GenericViewSet):
 	"""docstring for ClassName"""
-	
+	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = InterviewServices()
 
 	queryset = services.get_queryset()
@@ -65,7 +66,7 @@ class InterviewViewSet(GenericViewSet):
 
 
 	serializers_dict = {
-		'add': InterviewCreateRequestSerializer,
+		'interview_add': InterviewCreateRequestSerializer,
 		'interview_get': InterviewGetSerializer,
 		'interview_list': InterviewListSerializer,
 		'interview_update':InterviewUpdateSerilaizer,
@@ -82,8 +83,8 @@ class InterviewViewSet(GenericViewSet):
 			raise ParseException(BAD_ACTION, errors=key)
 
 
-	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ],)
-	def add(self,request):
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
+	def interview_add(self,request):
 		serializer = self.get_serializer(data=request.data)
 		print(serializer.is_valid())
 		if serializer.is_valid() is False:
@@ -99,7 +100,7 @@ class InterviewViewSet(GenericViewSet):
 		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
 
-	@action(methods=['get', 'patch'],detail=False,permission_classes=[IsAuthenticated, ],)
+	@action(methods=['get', 'patch'],detail=False,permission_classes=[IsAuthenticated,HiroolReadOnly],)
 	def interview_get(self, request):
 		try:
 			id=request.GET["id"]
@@ -112,7 +113,7 @@ class InterviewViewSet(GenericViewSet):
 
 
 
-	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def interview_list(self,request):
 		print(request.user.id)
 		data = self.get_serializer(self.queryset,many=True).data
@@ -120,7 +121,7 @@ class InterviewViewSet(GenericViewSet):
 
 
 
-	@action(methods=['put'],detail=False,permission_classes=[IsAuthenticated,],)
+	@action(methods=['put'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def interview_update(self, request):
 		"""
 		Return user profile data and groups

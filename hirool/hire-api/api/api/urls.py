@@ -6,6 +6,7 @@ from django.conf import settings
 
 # project level imports
 from accounts.users import views as account_views
+# from accounts.users import permissions as permissions
 from misc import views as misc_views
 from libs.custom_api_docs import include_docs_urls
 from clients import views as client_view
@@ -23,6 +24,13 @@ router.register(r'', misc_views.APIConfViewSet, base_name='misc')
 
 # register accounts app urls with router
 router.register(r'accounts', account_views.UserViewSet, base_name='accounts')
+
+router.register(r'permissions', account_views.PermissionsViewSet, base_name='accounts')
+
+router.register(r'userpermissions', account_views.UserPermissionsViewSet, base_name='accounts')
+
+router.register(r'actions', account_views.ActionViewSet, base_name='accounts')
+
 
 
 # register clients app urls with router
@@ -53,6 +61,7 @@ router.register(r'interviewsstatus',interview_view.InterviewStatusViewSet,base_n
 urlpatterns = [
     path('api/v1/', include((router.urls, 'api'), namespace='v1')),
     path('HS456GAG4FAYJSTT0O/hire-admin/', admin.site.urls),
+    # path('permissions/',permissions.custom_permission,name='perm'),
 ]
 
 if settings.ENV != "PROD":

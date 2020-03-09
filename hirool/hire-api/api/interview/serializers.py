@@ -47,29 +47,24 @@ class ClientGetSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Client
 		
-		fields = (
-			'id','name','web_link', 'headquarter', 'address', 'category',
-			'business_type', 'status', 'profile_desc', 'aggrement_doc',
-			'extra'
-		)
+		fields = ('id','name')
+		
 class JobGetSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Job
-		fields = ('id', 'client_id', 'job_title', 'jd_url', 'tech_skills', 'location', 'job_type',
-			'min_exp', 'max_exp', 'min_relevant_exp', 'max_notice', 'min_ctc', 'max_ctc',
-			'expiring_days', 'jd_extra')
+		fields = ('id', 'client_id', 'job_title',)
 
 class CandidateGetSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Candidate
-		fields= '__all__' 
+		fields= ('name','email','mobile') 
 
 class MemberGetSerializer(serializers.ModelSerializer):
 
 	class Meta:
 
 		model = User
-		fields= '__all__' 
+		fields= ('id','first_name','last_name')
 		
 		
 
@@ -103,11 +98,11 @@ class InterviewUpdateSerilaizer(serializers.ModelSerializer):
 
 	date = serializers.DateTimeField(required=True)
 	location = serializers.CharField(required=True)
-	client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(),required=False)
-	job=serializers.PrimaryKeyRelatedField(queryset=Job.objects.all(),required=False)
+	# client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(),required=False)
+	# job=serializers.PrimaryKeyRelatedField(queryset=Job.objects.all(),required=False)
 	interview_round=serializers.PrimaryKeyRelatedField(queryset=InterviewRound.objects.all(),required=False)
-	candidate=serializers.PrimaryKeyRelatedField(queryset=Candidate.objects.all(),required=False)
-	member=serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False)
+	# candidate=serializers.PrimaryKeyRelatedField(queryset=Candidate.objects.all(),required=False)
+	# mesmber=serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False)
 	interview_status=serializers.PrimaryKeyRelatedField(queryset=InterviewStatus.objects.all(),required=False)
 
 	# expiring_on = serializers.DateTimeField(required=False)
@@ -115,18 +110,18 @@ class InterviewUpdateSerilaizer(serializers.ModelSerializer):
 	def update(self, instance, validated_data):
 		instance.date =  validated_data.get('date', instance.date)
 		instance.location =  validated_data.get('location', instance.location)
-		instance.client =  validated_data.get('client', instance.client)
-		instance.job =  validated_data.get('job', instance.job)
+		# instance.client =  validated_data.get('client', instance.client)
+		# instance.job =  validated_data.get('job', instance.job)
 		instance.interview_round =  validated_data.get('interview_round', instance.interview_round)
-		instance.candidate =  validated_data.get('candidate', instance.candidate)
-		instance.member =  validated_data.get('member', instance.member)
+		# instance.candidate =  validated_data.get('candidate', instance.candidate)
+		# instance.member =  validated_data.get('member', instance.member)
 		instance.interview_status =  validated_data.get('interview_status', instance.interview_status)
 		instance.save()
 		return instance
 
 	class Meta:
 		model = Interview
-		fields = '__all__'
+		fields = ('id','date','location','interview_round','interview_status')
 		
 		
 
