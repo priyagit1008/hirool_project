@@ -1,12 +1,14 @@
 from .models import Interview,InterviewRound,InterviewStatus
+import json
+from django.core import serializers
 from clients.models import Client,Job
 from accounts.models import User
 from candidate.models import Candidate
 
 class InterviewServices:
 
-	def get_queryset(self):
-		return Interview.objects.all()
+	# def get_queryset(self):
+		# return Interview.objects.all()
 
 	def get_interview_service(self,id):
 		# interview_get=Interview.objects.get(id=id)
@@ -22,7 +24,10 @@ class InterviewServices:
 			return Response("invalid id")
 
 
-
+	def interview_filter_service(self,member_id,client_id,job_id,interview_round_id):
+		return Interview.objects.filter(member=member_id
+			,client=client_id,job=job_id,interview_round=interview_round_id).values()
+		
 class InterviewRound_Services:
 
 	def get_queryset(self):
@@ -49,9 +54,9 @@ class InterviewStatus_Services:
 
 
 
-class Client_get_Service:
-	def get_service(self,id):
-		clients_get=Client.objects.get(id=id)
+# class Client_get_Service:
+# 	def get_service(self,id):
+# 		clients_get=Client.objects.get(id=id)
 
 
 			

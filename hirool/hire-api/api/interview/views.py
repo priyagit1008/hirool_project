@@ -35,6 +35,7 @@ from candidate.models import Candidate
 from .serializers import (
 	InterviewCreateRequestSerializer,
 	InterviewGetSerializer,
+	# InterviewGetSerializer,
 	InterviewListSerializer,
 	InterviewUpdateSerilaizer,
 	InterviewRoundRequestSerializer,
@@ -47,12 +48,13 @@ from .services import InterviewServices
 from .services import InterviewRound_Services
 from .services import InterviewStatus_Services
 
+
 class InterviewViewSet(GenericViewSet):
 	"""docstring for ClassName"""
 	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = InterviewServices()
 
-	queryset = services.get_queryset()
+	# queryset = services.get_queryset()
 
 
 
@@ -68,6 +70,7 @@ class InterviewViewSet(GenericViewSet):
 	serializers_dict = {
 		'interview_add': InterviewCreateRequestSerializer,
 		'interview_get': InterviewGetSerializer,
+		# 'interview_filter':InterviewGetSerializer,
 		'interview_list': InterviewListSerializer,
 		'interview_update':InterviewUpdateSerilaizer,
 		}
@@ -115,9 +118,22 @@ class InterviewViewSet(GenericViewSet):
 
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def interview_list(self,request):
-		print(request.user.id)
-		data = self.get_serializer(self.queryset,many=True).data
-		return Response(data, status.HTTP_200_OK)
+		try:
+			member_id=request.GET["member"]
+			client_id=request.GET["client"]
+			job_id=request.GET["job"]
+			interview_round_id=request.GET["interview_round"]
+			serializer=self.get_serializer(self.services.interview_filter_service(member_id,client_id,job_id
+				,interview_round_id), many=True)
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+	    # print(request.user.id)
+		# data = self.get_serializer(self.queryset,many=True).data
+		# return Response(data, status.HTTP_200_OK)
 
 
 
@@ -142,6 +158,32 @@ class InterviewViewSet(GenericViewSet):
 		except Exception as e:
 			print(str(e))
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+	@action(methods=['get'],detail=False,permission_classes =[])
+	def interview_filter(self,request):
+	  try:
+	      id=request.GET["id"]
+	      print(id)
+	      serializer=self.get_serializer(self.services.interview_filter_service(id))
+	      return Response(serializer.data,status.HTTP_200_OK)
+	  except Exception as e:
+	      raise
+	      return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+	# @action(methods=['get'],detail=False,permission_classes =[])
+	# def interview_filter(self,request):
+	# 	try:
+	# 		id=request.GET.get("id")    
+	# 		# location=request.GET.get("location")
+	# 		# job_title=request.GET.get("job_title")
+	# 		interview_obj=Interview.objects.filter(id=id)
+	# 		print(interview_obj)
+	# 		return Response({"status": "success"}, status.HTTP_200_OK)
+	# 	except Exception as e:
+	# 		print("user request not ssuccessfull")
+	# 		return Response({"status": " not success"}, status.HTTP_404_NOT_FOUND)
+
 
 
 

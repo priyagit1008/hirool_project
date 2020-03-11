@@ -2,9 +2,9 @@ from .models import User,UserPermissions,Permissions,Actions
 
 class UserServices:
 
-	def get_queryset(self):
-		return User.objects.all()
-
+	def get_queryset(self,role_id):
+		return User.objects.filter(role_id=role_id).values()
+			
 	def get_user(self,id):
 		try:
 			return User.objects.get(id = id)

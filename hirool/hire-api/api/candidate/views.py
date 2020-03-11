@@ -71,7 +71,7 @@ class CandidateViewSet(GenericViewSet):
 	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = CandidateServices()
 
-	queryset = services.get_queryset()
+	# queryset = services.get_queryset()
 
 
 
@@ -123,8 +123,19 @@ class CandidateViewSet(GenericViewSet):
 	
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def candidate_list(self,request):
-		data = self.get_serializer(self.queryset,many=True).data
-		return Response(data, status.HTTP_200_OK)
+		# data = self.get_serializer(self.queryset,many=True).data
+		# return Response(data, status.HTTP_200_OK)
+
+		try:
+			tech_skills=request.GET.get("tech_skills")
+			work_experience=request.GET.get("work_experience")
+			print(tech_skills)
+			serializer=self.get_serializer(self.services.get_queryset(tech_skills,work_experience), many=True)
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
+
 
 
 
@@ -189,8 +200,6 @@ class CandidateViewSet(GenericViewSet):
 		try:
 			# experience= request.GET.get("work_experience")
 			skills=request.GET.get("tech_skills")
-			# print(experience)
-			# print(ctc)
 			candidate_obj = Candidate.objects.filter(tech_skills=skills)
 			print(candidate_obj)
 			print("user request ssuccessfull")

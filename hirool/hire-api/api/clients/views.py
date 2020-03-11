@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
-from django.db.models import Q
+# from django.db.models import Q
 # from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from accounts.users.permissions import HiroolReadOnly,HiroolReadWrite
@@ -57,7 +57,7 @@ class ClientViewSet(GenericViewSet):
 	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = ClientServices()
 
-	queryset = services.get_queryset()
+	# queryset = services.get_queryset()
 
 
 
@@ -120,13 +120,23 @@ class ClientViewSet(GenericViewSet):
 
 
 
-	@action(methods=['get'], detail=False)
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ])
 	def org_list(self, request):
 		"""
 		"""
-		print(request.user.id)
-		data = self.get_serializer(self.queryset, many=True).data
-		return Response(data, status.HTTP_200_OK)
+		try:
+			name=request.GET.get("name")
+			category=request.GET.get("category")
+			hiring_location=request.GET.get("hiring_location")
+			serializer=self.get_serializer(self.services.get_queryset
+				(name,category,hiring_location),many=True)
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
+
+			
+
 
 
 	
@@ -169,19 +179,19 @@ class ClientViewSet(GenericViewSet):
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 	# @action(methods=['get'],detail=False,
-	# 	permission_classes=[])
+	#   permission_classes=[])
 	# def filter_client(self,request):
-	# 	try:
-	# 		client_name= request.GET.get("name")
-	# 		client_category=request.GET.get("category")
-	# 		client_obj = Client.objects.all().filter(Q(name=client_name) | Q(category=client_category))
-	# 		print(client_name)
-	# 		print(client_category)
-	# 		print("user request ssuccessfull")
-	# 		return Response({"status": "success"}, status.HTTP_200_OK)
-	# 	except Exception as e:
-	# 		print("user request not ssuccessfull")
-	# 		return Response({"status": " not success"}, status.HTTP_404_NOT_FOUND)
+	#   try:
+	#       client_name= request.GET.get("name")
+	#       client_category=request.GET.get("category")
+	#       client_obj = Client.objects.all().filter(Q(name=client_name) | Q(category=client_category))
+	#       print(client_name)
+	#       print(client_category)
+	#       print("user request ssuccessfull")
+	#       return Response({"status": "success"}, status.HTTP_200_OK)
+	#   except Exception as e:
+	#       print("user request not ssuccessfull")
+	#       return Response({"status": " not success"}, status.HTTP_404_NOT_FOUND)
 
 
 
@@ -194,7 +204,7 @@ class ClientViewSet(GenericViewSet):
 		try:
 			client_name=request.GET.get("name")
 			client_category=request.GET.get("category")
-			client_obj=Client.objects.filter(Q(name=client_name,category=client_category))
+			client_obj=Client.objects.filter(name=client_name,category=client_category)
 			print(client_obj)
 			return Response({"status": "success"}, status.HTTP_200_OK)
 		except Exception as e:
@@ -247,7 +257,7 @@ class JobViewSet(GenericViewSet):
 	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = JobServices()
 
-	queryset = services.get_queryset()
+	# queryset = services.get_queryset()
 
   
 	 
@@ -296,12 +306,37 @@ class JobViewSet(GenericViewSet):
 
 
 
+	# @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite],)
+	# def job_list(self, request):
+	# 	"""
+	# 	"""
+	# 	data = self.get_serializer(self.queryset, many=True).data
+	# 	return Response(data, status.HTTP_200_OK)
+
+	
+
 	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def job_list(self, request):
 		"""
 		"""
-		data = self.get_serializer(self.queryset, many=True).data
-		return Response(data, status.HTTP_200_OK)
+		try:
+			location=request.GET.get("location")
+			job_title=request.GET.get("job_title")
+			min_relevant_exp=request.GET.get("min_relevant_exp")
+			min_ctc=request.GET.get("min_ctc")
+			max_ctc=request.GET.get("max_ctc")
+			serializer=self.get_serializer(self.services.get_queryset
+				(location,job_title,min_relevant_exp,min_ctc,max_ctc), many=True)
+			# print(serializer)
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
+
+			
+	
+
+
 
 
 	@action(methods=['get','put'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
@@ -330,10 +365,11 @@ class JobViewSet(GenericViewSet):
 		permission_classes =[])
 	def job_filter(self,request):
 		try:
+			client_id=request.GET.get("client_id")
 			location=request.GET.get("location")
 			job_title=request.GET.get("job_title")
-			job_obj=Job.objects.filter(Q(location=location,job_title=job_title))
-			print(job_obj)
+			job_obj=Job.objects.filter(location=location,job_title=job_title,client_id=client_id)
+			print(job_obj.id)
 			return Response({"status": "success"}, status.HTTP_200_OK)
 		except Exception as e:
 			print("user request not ssuccessfull")

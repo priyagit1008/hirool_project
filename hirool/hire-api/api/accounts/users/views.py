@@ -59,7 +59,7 @@ class UserViewSet(GenericViewSet):
 	permissions=(HiroolReadOnly,)
 	services = UserServices()
 
-	queryset = services.get_queryset()
+	# queryset = services.get_queryset()
 
 	filter_backends = (filters.OrderingFilter,)
 	authentication_classes = (TokenAuthentication,)
@@ -148,6 +148,11 @@ class UserViewSet(GenericViewSet):
 
 
 
+
+
+
+
+
 	@action(
 		methods=['get'],
 		detail=False,
@@ -158,8 +163,27 @@ class UserViewSet(GenericViewSet):
 		"""
 		Return user profile data and groups
 		"""
-		data = self.get_serializer(self.get_queryset(), many=True).data
-		return Response(data, status.HTTP_200_OK)
+		try:
+			role_id=request.GET.get("role_id")
+			print(role_id)
+			serializer=self.get_serializer(self.services.get_queryset(role_id), many=True)
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+
+
+
+
+
+
+		# data = self.get_serializer(self.get_queryset(), many=True).data
+		# return Response(data, status.HTTP_200_OK)
 
 
 

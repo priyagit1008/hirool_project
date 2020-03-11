@@ -14,8 +14,8 @@ from accounts.models import User
 
 #interview serializer
 class InterviewCreateRequestSerializer(serializers.Serializer):
-	date = serializers.DateTimeField(required=True)
-	location = serializers.CharField(required=True)
+	date = serializers.DateTimeField(required=False)
+	location = serializers.CharField(required=False)
 	client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(),required=False)
 	job=serializers.PrimaryKeyRelatedField(queryset=Job.objects.all(),required=False)
 	interview_round=serializers.PrimaryKeyRelatedField(queryset=InterviewRound.objects.all(),required=False)
@@ -79,19 +79,24 @@ class InterviewGetSerializer(serializers.ModelSerializer):
 		model = Interview
 		
 		fields = (
-			'id','client', 'job', 'interview_round', 'candidate', 'member',
-			'date', 'location', 'interview_status'
+
+			'id','client','job','member','candidate',
+			'interview_round','date','location','interview_status'
 		)
 		# write_only_fields = ('password',)
 		# read_only_fields = ('id',)
 class InterviewListSerializer(serializers.ModelSerializer):
+	member= MemberGetSerializer()
+	client= ClientGetSerializer()
+	job = JobGetSerializer()
+	# candidate = CandidateGetSerializer()
+
 
 	class Meta:
 		model = Interview
 		
 		fields = (
-			'id','client', 'job', 'interview_round', 'candidate', 'member',
-			'date', 'location', 'interview_status'
+			'id','client', 'job', 'interview_round', 'candidate', 'member','location', 'interview_status'
 		)
 ###################################################################################
 class InterviewUpdateSerilaizer(serializers.ModelSerializer):

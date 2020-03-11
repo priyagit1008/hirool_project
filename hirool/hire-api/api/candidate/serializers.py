@@ -36,11 +36,11 @@ class CandidateCreateRequestSerializer(serializers.Serializer):
 
 	class Meta:
 		model = Candidate
-		fields = ['name','email','profile_link ','mobile',
+		fields = ('name','email','profile_link ','mobile',
 		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
 		'master_per','certification','work_experience','previous_company','prepared_location',
 		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
-		'status']          
+		'status')        
 
 	def create(self, validated_data):
 		candidate= Candidate.objects.create(**validated_data)
@@ -49,17 +49,20 @@ class CandidateCreateRequestSerializer(serializers.Serializer):
 		candidate.save()
 
 		return candidate
+
+
 class CandidateListSerializer(serializers.ModelSerializer):
 	"""
 	"""
 	class Meta:
 		model=Candidate
-		# fields = ['name','email','profile_link','mobile',
-		# 'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
-		# 'master_per','certification','work_experience','previous_company','work_location',
-		# 'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills'
-		# 'status'] 
-		fields= '__all__'   
+		fields = ('name',
+		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
+		'master_per','certification','work_experience','previous_company','prepared_location',
+		'address','previous_ctc','expected_ctc','notice_days','tech_skills',
+		'status')         
+
+		# fields= '__all__'   
 
 class CandidateUpdateSerializer(serializers.ModelSerializer):
 	name = serializers.CharField(required=True)

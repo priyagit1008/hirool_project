@@ -10,9 +10,9 @@ class ClientCreateRequestSerializer(serializers.Serializer):
     """
     ClientCreateRequestSerializer
     """
-    name = serializers.CharField(required=True)
+    name = serializers.CharField(required=False)
     web_link = serializers.CharField(required=False)
-    headquarter = serializers.CharField(required=True)
+    headquarter = serializers.CharField(required=False)
     address = serializers.CharField(required=True)
     category = serializers.CharField(required=True)
     business_type = serializers.CharField(required=True)
@@ -44,7 +44,7 @@ class ClientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         # Tuple of serialized model fields (see link [2])
-        # fields = ( "id", "username", "password", )
+        # fields = ( "id" )
         fields = (
             'id', 'name', 'web_link', 'headquarter', 'address', 'category',
             'business_type', 'status', 'profile_desc', 'aggrement_doc',
