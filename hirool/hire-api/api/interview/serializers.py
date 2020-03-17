@@ -70,10 +70,10 @@ class MemberGetSerializer(serializers.ModelSerializer):
 
 class InterviewGetSerializer(serializers.ModelSerializer):
 
-	client = ClientGetSerializer()
-	job = JobGetSerializer()
-	candidate = CandidateGetSerializer()
-	member = MemberGetSerializer()
+	# client = ClientGetSerializer()
+	# job = JobGetSerializer()
+	# candidate = CandidateGetSerializer()
+	# member = MemberGetSerializer()
 
 	class Meta:
 		model = Interview
@@ -86,18 +86,23 @@ class InterviewGetSerializer(serializers.ModelSerializer):
 		# write_only_fields = ('password',)
 		# read_only_fields = ('id',)
 class InterviewListSerializer(serializers.ModelSerializer):
-	member= MemberGetSerializer()
-	client= ClientGetSerializer()
-	job = JobGetSerializer()
-	# candidate = CandidateGetSerializer()
+	# member= MemberGetSerializer()	
+	# client= ClientGetSerializer()
+	# job = JobGetSerializer()
+	# # candidate = CandidateGetSerializer()
 
 
 	class Meta:
 		model = Interview
 		
 		fields = (
-			'id','client', 'job', 'interview_round', 'candidate', 'member','location', 'interview_status'
+
+			'id','client','job','member','candidate',
+			'interview_round','date','location','interview_status'
 		)
+		# fields = (
+		# 	'id','client', 'job', 'interview_round', 'candidate', 'member','location', 'interview_status'
+		# )
 ###################################################################################
 class InterviewUpdateSerilaizer(serializers.ModelSerializer):
 

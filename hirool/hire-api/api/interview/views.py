@@ -71,7 +71,7 @@ class InterviewViewSet(GenericViewSet):
 		'interview_add': InterviewCreateRequestSerializer,
 		'interview_get': InterviewGetSerializer,
 		# 'interview_filter':InterviewGetSerializer,
-		'interview_list': InterviewListSerializer,
+		'interview_list': InterviewGetSerializer,
 		'interview_update':InterviewUpdateSerilaizer,
 		}
 
@@ -117,14 +117,11 @@ class InterviewViewSet(GenericViewSet):
 
 
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
-	def interview_list(self,request):
+	def interview_list(self,request,**dict):
 		try:
-			member_id=request.GET["member"]
-			client_id=request.GET["client"]
-			job_id=request.GET["job"]
-			interview_round_id=request.GET["interview_round"]
-			serializer=self.get_serializer(self.services.interview_filter_service(member_id,client_id,job_id
-				,interview_round_id), many=True)
+			filter_data=request.query_params.dict()
+			print(filter_data)
+			serializer=self.get_serializer(self.services.interview_filter_service(filter_data), many=True)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			raise
@@ -170,21 +167,6 @@ class InterviewViewSet(GenericViewSet):
 	  except Exception as e:
 	      raise
 	      return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
-	# @action(methods=['get'],detail=False,permission_classes =[])
-	# def interview_filter(self,request):
-	# 	try:
-	# 		id=request.GET.get("id")    
-	# 		# location=request.GET.get("location")
-	# 		# job_title=request.GET.get("job_title")
-	# 		interview_obj=Interview.objects.filter(id=id)
-	# 		print(interview_obj)
-	# 		return Response({"status": "success"}, status.HTTP_200_OK)
-	# 	except Exception as e:
-	# 		print("user request not ssuccessfull")
-	# 		return Response({"status": " not success"}, status.HTTP_404_NOT_FOUND)
-
-
 
 
 ###################################################################################

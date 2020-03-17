@@ -9,6 +9,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .permissions import HiroolReadOnly
 import math, random 
+from django.core.mail import send_mail
+
 
 
 # app level imports
@@ -144,42 +146,24 @@ class UserViewSet(GenericViewSet):
 		request.user.auth_token.delete()
 		return Response(status=status.HTTP_200_OK)
 
-
-
-
-
-
-
-
-
-
 	@action(
 		methods=['get'],
 		detail=False,
 		# url_path='image-upload',
 		permission_classes=[IsAuthenticated, ],
 	)
-	def list_exec(self, request):
+	def list_exec(self, request,**dict):
 		"""
 		Return user profile data and groups
 		"""
 		try:
-			role_id=request.GET.get("role_id")
-			print(role_id)
-			serializer=self.get_serializer(self.services.get_queryset(role_id), many=True)
+			filter_data=request.query_params.dict()
+			print(filter_data)
+			serializer=self.get_serializer(self.services.get_queryset(filter_data), many=True)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
-
-
-
-
-
-
-
-
-
 
 
 		# data = self.get_serializer(self.get_queryset(), many=True).data
@@ -238,6 +222,18 @@ class UserViewSet(GenericViewSet):
 			print(str(e))
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
+	# @action(
+	# 	methods=['put'],
+	# 	detail=False,
+	# 	# url_path='image-upload',
+	# 	permission_classes=[IsAuthenticated, ],
+	# )
+	# def email_address(self):
+	# 	email_address = self.cleaned_data.get('email_address')
+	# 	if Test.objects.filter(email_address__iexact=email_address).count() == 0:
+	# 		raise forms.ValidationError("Your email address not exist")
+	# 		return email_address
+
 
 	@action(
 		methods=['put'],
@@ -246,28 +242,12 @@ class UserViewSet(GenericViewSet):
 		permission_classes=[IsAuthenticated, ],
 	)
 	def change_pass(self,request):
-		data=request.data
-		password=data['password']
-		user = User.objects.get(id=request.user.id)
-		user.set_password(password)
-		user.save()
-		return Response({"status": "success"}, status.HTTP_404_NOT_FOUND)
-
-	@action(methods=['get'],detail=False,permission_classes=[])
-	def generateOTP(self,request) : 
-		digits = "0123456789"
-		OTP = ""
-		for i in range(4) : 
-			OTP += digits[math.floor(random.random() * 10)]
-			print(OTP)
-			return Response(OTP) 
-			if __name__ == "__main__" : 
-				print("OTP of 4 digits:", generateOTP()) 
-				return Response({"status": "success"}, status.HTTP_404_NOT_FOUND)
-				
-
-				# return Response("ok")
-
+			data=request.data
+			password=data['password']
+			user = User.objects.get(id=request.user.id)
+			user.set_password(password)
+			user.save()
+			return Response({"status": "success"}, status.HTTP_200_OK)
 	# def filter_role(self,request):
 	#   data=request.data
 	#   role=data['role']
@@ -344,7 +324,6 @@ class UserPermissionsViewSet(GenericViewSet):
 		try:
 			id = request.GET["id"]
 			serializer = self.get_serializer(self.services.get_userpermission_service(id))
-			print(serializer)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)

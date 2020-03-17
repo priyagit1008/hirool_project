@@ -184,6 +184,8 @@ REST_FRAMEWORK = {
     'accounts.users.permissions.HiroolReadWrite',
 
 ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+
 }
 
 # Admin Login URL
@@ -428,3 +430,9 @@ REDIS_CONFIG = {
 SMS_CONFIG = {
     "HOST" : ""
 }
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'priyapatil1421997@gmail.com'
+EMAIL_HOST_PASSWORD = 'priyaaru'

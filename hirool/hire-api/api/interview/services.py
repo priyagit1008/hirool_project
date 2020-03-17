@@ -12,21 +12,17 @@ class InterviewServices:
 
 	def get_interview_service(self,id):
 		# interview_get=Interview.objects.get(id=id)
-		try:
-			return Interview.objects.get(id = id)
-		except Interview.DoesNotExists:
-			return Response("invalid id")
+		return Interview.objects.get(id = id)
 
 	def update_interview_service(self,id):
-		try:
-			return Interview.objects.get(id = id)
-		except Interview.DoesNotExists:
-			return Response("invalid id")
+		return Interview.objects.get(id = id)
 
 
-	def interview_filter_service(self,member_id,client_id,job_id,interview_round_id):
-		return Interview.objects.filter(member=member_id
-			,client=client_id,job=job_id,interview_round=interview_round_id).values()
+	def interview_filter_service(self,filter_data):
+		return Interview.objects.filter(**filter_data).values()
+		
+
+
 		
 class InterviewRound_Services:
 
@@ -34,10 +30,7 @@ class InterviewRound_Services:
 		return InterviewRound.objects.all()
 
 	def get_Round_service(self,id):
-		try:
-			return InterviewRound.objects.get(id=id)
-		except InterviewRound.DoesNotExists:
-			return Response("invalid id")
+		return InterviewRound.objects.get(id=id)
 
 
 
@@ -47,10 +40,8 @@ class InterviewStatus_Services:
 		return InterviewStatus.objects.all()
 
 	def get_status_service(self,id):
-		try:
-			return InterviewStatus.objects.get(id=id)
-		except InterviewStatus.DoesNotExists:
-			return Response("invalid id")
+		return InterviewStatus.objects.get(id=id)
+		
 
 
 

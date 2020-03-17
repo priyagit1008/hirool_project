@@ -122,19 +122,17 @@ class CandidateViewSet(GenericViewSet):
 		
 	
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
-	def candidate_list(self,request):
-		# data = self.get_serializer(self.queryset,many=True).data
-		# return Response(data, status.HTTP_200_OK)
+	def candidate_list(self,request,**dict):
 
 		try:
-			tech_skills=request.GET.get("tech_skills")
-			work_experience=request.GET.get("work_experience")
-			print(tech_skills)
-			serializer=self.get_serializer(self.services.get_queryset(tech_skills,work_experience), many=True)
+			filter_data=request.query_params.dict()
+			serializer=self.get_serializer(self.services.get_queryset(filter_data), many=True)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
+		# data = self.get_serializer(self.queryset,many=True).data
+		# return Response(data, status.HTTP_200_OK)
 
 
 

@@ -2,15 +2,12 @@ from .models import User,UserPermissions,Permissions,Actions
 
 class UserServices:
 
-	def get_queryset(self,role_id):
-		return User.objects.filter(role_id=role_id).values()
+	def get_queryset(self,filter_data):
+		return User.objects.filter(**filter_data)
 			
 	def get_user(self,id):
-		try:
-			return User.objects.get(id = id)
-		except User.DoesNotExists:
-			return Response("invalid id")
-
+		return User.objects.get(id = id)
+		
 
 	def update_user(self,id):
 		try:
@@ -29,12 +26,7 @@ class userpermissions_service:
 		return UserPermissions.objects.all()
 
 	def get_userpermission_service(self,id):
-		try:
-			return UserPermissions.objects.get(id = id)
-		except UserPermissions.DoesNotExists:
-			return Response("invalid id")
-
-
+		return UserPermissions.objects.get(id = id)
 
 class permission_service:
 	"""docstring for permission_service"""

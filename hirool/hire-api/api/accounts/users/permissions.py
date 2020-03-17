@@ -23,9 +23,6 @@ class HiroolReadOnly(permissions.BasePermission):
 				print("user request not successfull")
 				return False
 		return False
-			
-		# else:
-		#   return False
 
 class HiroolReadWrite(permissions.BasePermission):
 
@@ -43,27 +40,5 @@ class HiroolReadWrite(permissions.BasePermission):
 			return False
 
 
-# permission_id=Permissions.objects.all()
-			# print(permission_id)
-			# return False
-		# if request.method in permissions.SAFE_METHODS:
-		#   print("Has permissions")
-		#   # print(view.action)
-		#   # print(request.user.id)
-		#   # action_id=Actions.objects.get(action_name=view.action)
-		#   # print(action_id)
-		#   # permission_id=Permissions.objects.get
-		#   # print()
-
-
-		#   if UserPermissions.objects.filter(user=request.user.id,
-		#       actions=__name__==view.action,permission=__name__=='Read').exists():
-
-		#       # print(UserPermissions.objects.filter(user=request.user.id).exists())
-
-		#       # print(request.user)
-		#       print("user request successfull")
-		#       return True
-		#   else:
-		#       print("user request not successfull")
-		#       return False
+# permission_id=Permissions.objects.all()id)
+  # permission_id=Permissions.objects.get
