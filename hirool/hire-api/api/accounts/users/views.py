@@ -12,7 +12,6 @@ import math, random
 from django.core.mail import send_mail
 
 
-
 # app level imports
 from .models import User,Actions,Permissions,UserPermissions
 from .serializers import (
@@ -22,6 +21,8 @@ from .serializers import (
 	UserRegSerializer,
 	UserListSerializer,
 	UserUpdateRequestSerializer,
+	UserPassUpdateSerializer,
+
 	UserPermissionCreateRequestSerializer,
 	UserPermissionsListSerializer,
 	PermissionCreateRequestSerializer,
@@ -43,6 +44,14 @@ from libs.constants import (
 		# ParseException
 
 )
+from libs import (
+				# redis_client,
+				otpgenerate,
+				mail,
+				)
+from libs.clients import(
+	redis_client
+	)
 # from accounts.constants import COULD_NOT_SEND_OTP, USER_NOT_REGISTERED
 from libs.exceptions import ParseException
 # from libs.helpers import time_it
@@ -78,6 +87,7 @@ class UserViewSet(GenericViewSet):
 		'list_exec': UserListSerializer,
 		'exec': UserListSerializer,
 		'exec_update': UserUpdateRequestSerializer,
+		'forgotpass':UserPassUpdateSerializer,
 		# 'list': UserListSerializer,
 	}
 
@@ -223,16 +233,16 @@ class UserViewSet(GenericViewSet):
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 	# @action(
-	# 	methods=['put'],
-	# 	detail=False,
-	# 	# url_path='image-upload',
-	# 	permission_classes=[IsAuthenticated, ],
+	#   methods=['put'],
+	#   detail=False,
+	#   # url_path='image-upload',
+	#   permission_classes=[IsAuthenticated, ],
 	# )
 	# def email_address(self):
-	# 	email_address = self.cleaned_data.get('email_address')
-	# 	if Test.objects.filter(email_address__iexact=email_address).count() == 0:
-	# 		raise forms.ValidationError("Your email address not exist")
-	# 		return email_address
+	#   email_address = self.cleaned_data.get('email_address')
+	#   if Test.objects.filter(email_address__iexact=email_address).count() == 0:
+	#       raise forms.ValidationError("Your email address not exist")
+	#       return email_address
 
 
 	@action(
@@ -256,6 +266,112 @@ class UserViewSet(GenericViewSet):
 
 
 
+
+
+	@action(
+	  methods=['get'],
+	  detail=False,permission_classes=[IsAuthenticated, ],
+	)
+	def send_otp(self, request):
+		try:
+			email=request.GET["email"]
+			d = User.objects.get(email=email)
+			otp = otpgenerate.otpgen(self)
+			print(otp)
+			redis_client.store_data(email,otp)
+			mail.sendmail.delay(otp,"Forgate password",[request.user.email])
+			return Response({"status": "email sent"}, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
+
+
+	@action(
+		methods=['get'],
+		detail=False,permission_classes=[IsAuthenticated,],
+	)
+	def send_email(self,request):
+		"""
+
+		"""
+		try:
+			# print(hi)
+			email=request.user.email
+			otp=otpgenerate.otpgen(self)
+			print(otp)
+			send_mail.delay('otp generating','Registration succesfull','priyapatil1421997@gmail.com',[email],fail_silently=False,)
+			return Response("email sent succesfull")
+		except Exception as e:
+			return Response(" email not sent succesfull")
+
+	@action(
+		methods=['get'],
+		detail=False,permission_classes=[IsAuthenticated,],
+	)
+	def forgotpass(self,request):
+		try:
+			data=request.data
+			print(data)
+			self.object = User.objects.get(email=data["email"],is_active=True)
+
+			if not redis_client.key_exists(data["email"]):
+				return Response({"status": "Bad Otp"}, status=status.HTTP_400_BAD_REQUEST)
+
+			# print (redis_client.get_Key_data(data["email"]).decode("utf-8"),data["reset_otp"])
+			if not redis_client.get_Key_data(data["email"]).decode("utf-8") == data["reset_otp"]:
+				return Response({"status": "Bad Otp"}, status=status.HTTP_400_BAD_REQUEST)
+
+			redis_client.delete_Key_data(data["email"])
+
+			serializer = self.get_serializer(self.object,data=data)
+			if not serializer.is_valid():
+				return Response("in valide",status.HTTP_404_NOT_FOUND)
+				# raise ParseException(serializer.errors, serializer.errors)
+			try:
+				serializer.save()
+				return Response({"status":"Successfully Updated password"}, status.HTTP_200_OK)
+			except Exception as e:
+				return Response("hi",status.HTTP_404_NOT_FOUND)
+		except Exception as e:
+			return Response("hello",status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		# print("hi")
+		# try:
+		# 	print("hi")
+		# 	email = request.data['email']
+		# 	otp = request.data['otp']
+		# 	print(otp)
+		# except Exception as e:
+		# 	return Response("Bad Request",status=status.HTTP_400_BAD_REQUEST)
+		# 	if not User.objects.get(email=email).exists():
+		# 		return Response(BAD_REQUEST, status=status.HTTP_400_BAD_REQUEST)
+
+		# 	data = User.objects.get(email=email)
+		# 	if not redis_client.key_exists(email):
+		# 		return Response(BAD_REQUEST, status=status.HTTP_400_BAD_REQUEST)
+
+		# 	redis_client.remove_data(email)
+		# 	serializer = self.get_serializer(self.objects, data=request.data)
+		# 	print(serializer.is_valid())
+		# 	if serializer.is_valid() is False:
+		# 		raise ParseException(BAD_REQUEST, serializer.errors)
+		# 		serializer.save()
+		# 		return Response(({'status':'password updated successfully'}), status=status.HTTP_200_OK)
+
+				
 ###################################################################################
 class UserPermissionsViewSet(GenericViewSet):
 	"""

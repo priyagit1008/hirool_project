@@ -90,7 +90,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = User
-		fields = ('id','first_name', 'last_name', 'is_active',
+		fields = ('id','first_name', 'last_name','email','mobile' ,'is_active',
 		 'role_id')
 		# fields = '__all__'
 
@@ -119,6 +119,7 @@ class UserUpdateRequestSerializer(serializers.ModelSerializer):
 		instance.id = validated_data.get('id', instance.id)
 		instance.first_name= validated_data.get('first_name', instance.first_name)
 		instance.last_name = validated_data.get('last_name', instance.last_name)
+		instance.email=validated_data.get('email',instance.email)
 		instance.mobile = validated_data.get('mobile', instance.mobile)
 		instance.save()
 		return instance
@@ -126,7 +127,7 @@ class UserUpdateRequestSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model=User
-		fields=('id','first_name','last_name','mobile')
+		fields=('id','first_name','last_name','email','mobile')
 
 
 
@@ -139,6 +140,23 @@ class clientserializer(serializers.ModelSerializer):
 			'first_name', 'last_name', 'mobile', 'access_token', 'sub_cluster',
 			'is_verified', 'is_active', 'email', 'image_url'
 		)
+
+
+
+class UserPassUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id','password',)
+
+    def validate(self,data):
+        return data
+
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            instance.set_password(validated_data.get('password'))
+        instance.save()
+        return instance
 
 
 	# def update(self,instance,validated_data):
