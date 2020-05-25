@@ -5,6 +5,8 @@ from django.shortcuts import render
 
 
 # django imports
+from django.conf import settings
+
 from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,12 +17,21 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from accounts.users.permissions import HiroolReadOnly,HiroolReadWrite
 
+from django.template import Context
+from django.template.loader import get_template
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage,send_mail
 
 # project level imports
 from libs.constants import (
 		BAD_REQUEST,
 		BAD_ACTION,
 )
+from libs import (
+				# redis_client,
+				# otpgenerate,
+				mail,
+				)
 
 from libs.exceptions import ParseException
 
@@ -98,6 +109,10 @@ class InterviewViewSet(GenericViewSet):
 
 		interview = serializer.create(serializer.validated_data)
 		if interview:
+			msg_plain = render_to_string('email_message.txt',{"user":interview.candidate.name})
+			msg_html = render_to_string('email.html',{"user":interview.candidate.name})
+			# mail.send_mail(msg_plain,"hi",candidate.email)
+			send_mail('Hirool',msg_plain,settings.EMAIL_HOST_USER,[interview.candidate.email],html_message=msg_html,)
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)

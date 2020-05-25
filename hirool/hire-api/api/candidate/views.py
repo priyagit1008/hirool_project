@@ -1,17 +1,12 @@
-from django.shortcuts import render
-# import os
-from docx import Document
 import unicodedata
 import os,io
 from django.conf import settings
-
-# from django.conf.settings import BASE_DIR
-# import urllib2
-
-# django imports
-# from django.http import FileResponse
 from django.http import HttpResponse
 from django.contrib.auth.decorators import permission_required
+from django.core.mail import EmailMessage,send_mail
+from django.template import Context
+from django.template.loader import get_template
+from django.template.loader import render_to_string
 
 
 from rest_framework import filters
@@ -20,45 +15,32 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
-# from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FileUploadParser
+
 
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
-# from .serializers import MyFileSerializer
-
-
-# from .forms import uplodefile_form
-
-# app level imports
 from .models import Candidate
-# from accounts.users import permissions
 from accounts.users.permissions import HiroolReadOnly,HiroolReadWrite
-
-
-
-
 from .serializers import (
 	CandidateCreateRequestSerializer,
 	CandidateListSerializer,
 	CandidateListSerializer,
 	CandidateUpdateSerializer,
-	# DownloadResumeSerializer
-	# CandidateResumeSerializer,
-
-
-	# CandidateFileSerializer
 	)
 from .services import CandidateServices
-
-# project level imports
 from libs.constants import (
 		BAD_REQUEST,
 		BAD_ACTION,
 		
 )
+from libs import (
+				# redis_client,
+				otpgenerate,
+				mail,
+				)
 from api.default_settings import MEDIA_ROOT 
 
 from libs.exceptions import ParseException
@@ -70,13 +52,7 @@ class CandidateViewSet(GenericViewSet):
 	"""docstring for candidateViewset"""
 	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = CandidateServices()
-
-	# queryset = services.get_queryset()
-
-
-
 	filter_backends = (filters.OrderingFilter,)
-	# authentication_classes = (TokenAuthentication,)
 	parser_class = (FileUploadParser,)
 
 	ordering_fields = ('id',)
@@ -89,9 +65,6 @@ class CandidateViewSet(GenericViewSet):
 			'candidate_list':CandidateListSerializer,
 			'candidate_get':CandidateListSerializer,
 			'candidate_update':CandidateUpdateSerializer,
-			# 'download_file':DownloadResumeSerializer,
-			# 'upload_file':CandidateResumeSerializer
-			# 'candidate_file_view':CandidateFileSerializer,
 			}
 
 	def get_serializer_class(self):
@@ -103,18 +76,21 @@ class CandidateViewSet(GenericViewSet):
 			raise ParseException(BAD_ACTION, errors=key)
 
 
-	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite],)
+	@action(methods=['post'], detail=False, permission_classes=[],)
 	def candidate(self,request):
+		"""
+		Returns candidate account creation
+		"""
 		serializer = self.get_serializer(data=request.data)
-		print(serializer.is_valid())
 		if not serializer.is_valid():
-			print(serializer.errors)
 			raise ParseException(BAD_REQUEST, serializer.errors)
 		print("create candidate with", serializer.validated_data)
-
 		candidate= serializer.create(serializer.validated_data)
 		if candidate:
-
+			msg_plain = render_to_string('email_message.txt',{"user":candidate.name})
+			msg_html = render_to_string('email.html',{"user":candidate.name})
+			# mail.send_mail(msg_plain,"hi",candidate.email)
+			send_mail('Hirool',msg_plain,settings.EMAIL_HOST_USER,[candidate.email],html_message=msg_html,)
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND) 
 
@@ -123,13 +99,14 @@ class CandidateViewSet(GenericViewSet):
 	
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def candidate_list(self,request,**dict):
-
+		"""
+		Returns candidate list
+		"""
 		try:
 			filter_data=request.query_params.dict()
 			serializer=self.get_serializer(self.services.get_queryset(filter_data), many=True)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
-			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 		# data = self.get_serializer(self.queryset,many=True).data
 		# return Response(data, status.HTTP_200_OK)
@@ -138,12 +115,13 @@ class CandidateViewSet(GenericViewSet):
 
 
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadOnly],)
-	# @permission_required('action.user','action.action','action.permission')
 	def candidate_get(self,request):
+		"""
+		Returns single candidate details
+		"""
 		try:
 			id = request.GET["id"]
 			serializer = self.get_serializer(self.services.get_candidate_service(id))
-			# print(serializer)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
@@ -153,23 +131,19 @@ class CandidateViewSet(GenericViewSet):
 
 	@action(methods=['get','put'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	def candidate_update(self,request):
+		"""
+		update candidate details
+		"""
 		try:
-		   
 			data=request.data
 			id=data['id']
 			serializer=self.get_serializer(self.services.update_candidate_service(id),data=request.data)
 			if not serializer.is_valid():
-				print(serializer.errors)
 				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
-				# serializer.update(id_obj,serializer.data)
 				serializer.save()
-				print(serializer.data)
 				return Response(serializer.data,status.HTTP_200_OK)
-		# except Candidate.DoesNotExist:
-		#   return Response({"status": "Invalid Id"}, status.HTTP_404_NOT_FOUND)
 		except Exception as e:
-			raise
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 	@action(
@@ -178,6 +152,9 @@ class CandidateViewSet(GenericViewSet):
 		permission_classes=[],
 		)
 	def download_file(self,request, encoding='utf8'):
+		"""
+		Download candidate resume
+		"""
 		try:   
 			id=request.GET["id"]
 			resume_name = Candidate.objects.get(id=id).resume
@@ -191,40 +168,38 @@ class CandidateViewSet(GenericViewSet):
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
+	@action(
+		methods=['get'],
+		detail=False,permission_classes=[],
+	)
+	def candidate_dashboard(self,request):
+		"""
+		Returns total candidate details
+		"""
+		candidate_count = Candidate.objects.count()
+		return Response({"candidate":candidate_count}, status.HTTP_200_OK)
 
-	@action(methods=['get'],detail=False,
-		permission_classes=[])
-	def candidate_filter(self,request):
+	@action(
+		methods=['get'],
+		detail=False,permission_classes=[],
+	)
+	def candidate_send_email(self,request,**dict):
+		"""
+		send mail api
+		"""
 		try:
-			# experience= request.GET.get("work_experience")
-			skills=request.GET.get("tech_skills")
-			candidate_obj = Candidate.objects.filter(tech_skills=skills)
-			print(candidate_obj)
-			print("user request ssuccessfull")
-			return Response({"status": "success"}, status.HTTP_200_OK)
+			msg_plain = render_to_string('email_message.txt',{"user":candidate.email})
+			msg_html = render_to_string('email.html',{"user":candidate.email})
+			# print(request.user.name)
+			mail.sendmail.delay(msg_plain,"hi",[request.user.email])
+			send_mail(
+				'Hirool',
+				msg_plain,
+				'priyapatil1421997@gmail.com',
+				[candidate.email],
+				html_message=msg_html,
+				)
+			return Response("hi")
 		except Exception as e:
-			print("user request not ssuccessfull")
-			return Response({"status": " not success"}, status.HTTP_404_NOT_FOUND)
-
-
-
-
-
-
-
-
-
-
-
-
-
-	# @action(methods=['get'],detail=False,permission_classes=[])
-	# def filter_skills(self,request):
-	# 	try:
-	# 		skills=request.GET.get("tech_skills")
-	# 		print(tech_skills)
-	# 		skill_obj=Candidate.objects.filter(Q())
-
-
-		pass
-	
+			raise
+			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
