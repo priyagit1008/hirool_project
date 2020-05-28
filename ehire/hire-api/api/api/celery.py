@@ -4,7 +4,7 @@ from celery import Celery
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
-
+# BROKER_URL = 'redis://localhost:6379/0'
 app = Celery('hire_api')
 
 # Using a string here means the worker doesn't have to serialize

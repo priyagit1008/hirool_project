@@ -1,0 +1,3 @@
+
+Hello {{user}}-hello.
+hi {{date}}-hello

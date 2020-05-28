@@ -10,9 +10,9 @@ class ClientCreateRequestSerializer(serializers.Serializer):
     """
     ClientCreateRequestSerializer
     """
-    name = serializers.CharField(required=True)
+    name = serializers.CharField(required=False)
     web_link = serializers.CharField(required=False)
-    headquarter = serializers.CharField(required=True)
+    headquarter = serializers.CharField(required=False)
     address = serializers.CharField(required=True)
     category = serializers.CharField(required=True)
     business_type = serializers.CharField(required=True)
@@ -44,7 +44,7 @@ class ClientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         # Tuple of serialized model fields (see link [2])
-        # fields = ( "id", "username", "password", )
+        # fields = ( "id" )
         fields = (
             'id', 'name', 'web_link', 'headquarter', 'address', 'category',
             'business_type', 'status', 'profile_desc', 'aggrement_doc',
@@ -133,6 +133,7 @@ class JobListSerializer(serializers.ModelSerializer):
             'expiring_days', 'jd_extra'
         )
         # write_only_fields = ('password',)
+        # fields='__all__'
         read_only_fields = ('id',)
 
 class JobUpdateSerilaizer(serializers.ModelSerializer):
@@ -157,8 +158,13 @@ class JobUpdateSerilaizer(serializers.ModelSerializer):
 
     class Meta:
         model = Job
-        fields = ('job_title','jd_url','tech_skills','min_exp','max_exp')
-
+        # fields = ('job_title','jd_url','tech_skills','min_exp','max_exp')
+        fields = (
+            'id', 'client_id', 'job_title', 'jd_url', 'tech_skills', 'location', 'job_type',
+            'min_exp', 'max_exp', 'min_relevant_exp', 'max_notice', 'min_ctc', 'max_ctc',
+            'expiring_days', 'jd_extra'
+        )
+        # fields = '__all__'
         
         
         

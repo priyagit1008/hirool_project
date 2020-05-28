@@ -1,20 +1,20 @@
 # app levelimports
+from rest_framework import serializers
+import json
+
 from .models import Candidate
 
 class CandidateServices:
 
-	def get_queryset(self):
-		return Candidate.objects.all()
-
-	def get_candidate(self,id):
-		try:
-			return True, Candidate.objects.get(id = id)
-		except Candidate.DoesNotExists:
-			return Response("invalid id")
 
 
-	def update_candidate(self,id):
-		try:
-			return Candidate.objects.get(id = id)
-		except Candidate.DoesNotExists:
-			return Response("invalid id")
+	def get_queryset(self,filter_data):
+		
+		return Candidate.objects.filter(**filter_data)
+
+	def get_candidate_service(self,id):
+		return Candidate.objects.get(id = id)
+
+	def update_candidate_service(self,id):
+		return Candidate.objects.get(id = id)
+	

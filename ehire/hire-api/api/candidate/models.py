@@ -10,7 +10,6 @@ import uuid
 # third party imports
 from model_utils import Choices
 
-
 from datetime import timedelta
 from django.utils import timezone
 

@@ -34,7 +34,7 @@ SECRET_KEY = '2)huh6&33c9l00jlva!us%lq@np#n0e=*(j5pt_2*42@&a4b%i'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -54,16 +54,23 @@ THIRD_PARTY_APPS = [
     'filters',
     'rangefilter',
     'django_extensions',
+    # 'crispy_forms',
 ]
 
 LOCAL_APPS = [
     'accounts',
     'misc',
+    'candidate',
+    'gunicorn',
     'clients',
-    'candidate'
+    'interview',
+    'libs',
+
+
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+# INSTALLED_APPS += ('kombu.transport.django', )
 
 # MIDDLEWARE = [
 #     'django.middleware.security.SecurityMiddleware',
@@ -88,16 +95,29 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # ]
 
 
-MIDDLEWARE_CLASSES = (
-'django.contrib.sessions.middleware.SessionMiddleware',
-'django.middleware.common.CommonMiddleware',
-'django.middleware.csrf.CsrfViewMiddleware',
-'django.contrib.auth.middleware.AuthenticationMiddleware',
-'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-'django.contrib.messages.middleware.MessageMiddleware',
-'django.middleware.clickjacking.XFrameOptionsMiddleware',
-'django.middleware.security.SecurityMiddleware',
-)
+# MIDDLEWARE_CLASSES = (
+# 'django.contrib.sessions.middleware.SessionMiddleware',
+# 'django.middleware.common.CommonMiddleware',
+# 'django.middleware.csrf.CsrfViewMiddleware',
+# 'django.contrib.auth.middleware.AuthenticationMiddleware',
+# 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+# 'django.contrib.messages.middleware.MessageMiddleware',
+# 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+# 'django.middleware.security.SecurityMiddleware',
+# )
+
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+
 
 
 MEDIA_URL = '/media/'
@@ -162,7 +182,13 @@ REST_FRAMEWORK = {
 
     'DEFAULT_PERMISSION_CLASSES': (
     'rest_framework.permissions.IsAuthenticated',
+    'rest_framework.permissions.AllowAny',
+    'accounts.users.permissions.HiroolReadOnly',
+    'accounts.users.permissions.HiroolReadWrite',
+
 ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+
 }
 
 # Admin Login URL
@@ -206,8 +232,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+# STATIC_URL = '/static/'
+# STATIC_ROOT = BASE_DIR + '/static/'
+
+
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR + '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # Sentry Raven Config
 RAVEN_CONFIG = {
@@ -320,6 +350,7 @@ CELERY_ROUTES = {
     },
     
 }
+# app.conf.broker_transport_options = {'visibility_timeout': 3600}
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
@@ -379,7 +410,11 @@ OTP_CONFIG = {
     'ALLOWED_LOGIN_ATTEMPTS': 4,
 }
 
-CELERY_BROKER_URL = ""
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379   '
+
+
 
 # Google Maps Config
 GOOGLE_MAP_CONFIG = {
@@ -403,3 +438,20 @@ REDIS_CONFIG = {
 SMS_CONFIG = {
     "HOST" : ""
 }
+
+# ANYMAIL = {
+
+#    "SENDGRID_API_KEY":"<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>"
+# }
+
+# EMAIL_HOST = 'smtp.sendgrid.net'
+# EMAIL_HOST_USER = 'priyapatil1421997.com'
+# EMAIL_HOST_PASSWORD = 'priyaaru'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'priyapatil1421997@gmail.com'
+EMAIL_HOST_PASSWORD ='priyaaru'
