@@ -16,6 +16,11 @@ class UserServices:
 	def update_pass(self,id):
 		return User.objects.get(id=id)
 		
+	def email_service(self,email):
+		return User.objects.get(email=email)
+		
+		
+
 
 ###########################################################################
 

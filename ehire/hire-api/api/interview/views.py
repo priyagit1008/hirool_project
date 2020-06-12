@@ -15,8 +15,8 @@ from django.core.mail import send_mail
 
 # project level imports
 from libs.constants import (
-    BAD_REQUEST,
-    BAD_ACTION,
+	BAD_REQUEST,
+	BAD_ACTION,
 )
 from libs.exceptions import ParseException
 
@@ -29,14 +29,14 @@ from candidate.models import Candidate
 # from .services import ClientServices
 
 from .serializers import (
-    InterviewCreateRequestSerializer,
-    InterviewGetSerializer,
-    InterviewListSerializer,
-    InterviewUpdateSerilaizer,
-    InterviewRoundRequestSerializer,
-    InterviewRoundListSerializer,
-    InterviewStatusRequestSerializer,
-    InterviewStatusListSerializer
+	InterviewCreateRequestSerializer,
+	InterviewGetSerializer,
+	InterviewListSerializer,
+	InterviewUpdateSerilaizer,
+	InterviewRoundRequestSerializer,
+	InterviewRoundListSerializer,
+	InterviewStatusRequestSerializer,
+	InterviewStatusListSerializer
 )
 
 from .services import InterviewServices
@@ -45,240 +45,263 @@ from .services import InterviewStatus_Services
 
 
 class InterviewViewSet(GenericViewSet):
-    """docstring for ClassName"""
-    permissions = (HiroolReadOnly, HiroolReadWrite)
-    services = InterviewServices()
+	"""docstring for ClassName"""
+	permissions = (HiroolReadOnly, HiroolReadWrite)
+	services = InterviewServices()
 
-    # queryset = services.get_queryset()
+	# queryset = services.get_queryset()
 
-    filter_backends = (filters.OrderingFilter,)
-    authentication_classes = (TokenAuthentication,)
+	filter_backends = (filters.OrderingFilter,)
+	authentication_classes = (TokenAuthentication,)
 
-    ordering_fields = ('id',)
-    ordering = ('id',)
-    lookup_field = 'id'
-    http_method_names = ['get', 'post', 'put']
+	ordering_fields = ('id',)
+	ordering = ('id',)
+	lookup_field = 'id'
+	http_method_names = ['get', 'post', 'put']
 
-    serializers_dict = {
-        'interview_add': InterviewCreateRequestSerializer,
-        'interview_get': InterviewGetSerializer,
-        'interview_list': InterviewGetSerializer,
-        'interview_update': InterviewUpdateSerilaizer,
-    }
+	serializers_dict = {
+		'interview_add': InterviewCreateRequestSerializer,
+		'interview_get': InterviewGetSerializer,
+		'interview_list': InterviewGetSerializer,
+		'interview_update': InterviewUpdateSerilaizer,
+		'delete_interview': InterviewListSerializer
+		,
+	}
 
-    def get_serializer_class(self):
-        """
+	def get_serializer_class(self):
 		"""
-        try:
-            return self.serializers_dict[self.action]
-        except KeyError as key:
-            raise ParseException(BAD_ACTION, errors=key)
+		"""
+		try:
+			return self.serializers_dict[self.action]
+		except KeyError as key:
+			raise ParseException(BAD_ACTION, errors=key)
 
-    @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, HiroolReadWrite], )
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, HiroolReadWrite], )
 
-    def interview_add(self, request):
+	def interview_add(self, request):
 
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid() is False:
+		serializer = self.get_serializer(data=request.data)
+		if serializer.is_valid() is False:
 
-            raise ParseException(BAD_REQUEST, serializer.errors)
-        interview = serializer.create(serializer.validated_data)
+			raise ParseException(BAD_REQUEST, serializer.errors)
+		interview = serializer.create(serializer.validated_data)
 
-        if interview:
-            msg_plain = render_to_string('email_message.txt', {"user": interview.candidate.name})
-            msg_html = render_to_string('email.html', {"user": interview.candidate.name})
-            send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [interview.candidate.email],html_message=msg_html, )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+		if interview:
+			msg_plain = render_to_string('interview_email_message.txt', {"name":interview.candidate.name,"date": interview.date,"location":interview.location})
+			msg_html = render_to_string('interview_email.html',{"name":interview.candidate.name,"date": interview.date,"location":interview.location})
+			send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [interview.candidate.email],html_message=msg_html, )
+			return Response(serializer.data,status.HTTP_201_CREATED)
 
-        return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
-
-
-
-    @action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated,], )
-    def interview_get(self, request):
-        try:
-            id= request.GET.get('id', None)
-            if not id:
-                return Response({"status": "Failed", "message":"id is required"})
-            else:
-                serializer = self.get_serializer(self.services.get_interview_service(id))
-                return Response(serializer.data, status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
 
 
-    @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, HiroolReadWrite], )
-    def interview_list(self, request, **dict):
-        try:
-            filter_data = request.query_params.dict()
-            serializer = self.get_serializer(self.services.interview_filter_service(filter_data), many=True)
-            return Response(serializer.data, status.HTTP_200_OK)
-        except Exception as e:
-            
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
-
-    @action(methods=['put'], detail=False, permission_classes=[IsAuthenticated, HiroolReadWrite], )
-    def interview_update(self, request):
-        """
-        Return user profile data and groups
-        """
-        try:
-
-            data = request.data
-            id= request.GET.get('id', None)
-            if not id:
-                return Response({"status": "Failed", "message":"id is required"})
-            serializer = self.get_serializer(self.services.update_interview_service(id), data=request.data)
-            if not serializer.is_valid():
-                raise ParseException(BAD_REQUEST, serializer.errors)
-            else:
-                serializer.save()
-                print(serializer.data)
-                return Response(serializer.data, status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	@action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated,], )
+	def interview_get(self, request):
+		try:
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_interview_service(id))
+				return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
 
-    @action(methods=['get'], detail=False, permission_classes=[])
-    def interview_filter(self, request):
-        try:
-            id = request.GET["id"]
-            print(id)
-            serializer = self.get_serializer(self.services.interview_filter_service(id))
-            return Response(serializer.data, status.HTTP_200_OK)
-        except Exception as e:
-            raise
-            return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,], )
+	def interview_list(self, request, **dict):
+		try:
+			filter_data = request.query_params.dict()
+			serializer = self.get_serializer(self.services.interview_filter_service(filter_data), many=True)
+			return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+	@action(methods=['put'], detail=False, permission_classes=[IsAuthenticated, HiroolReadWrite], )
+	def interview_update(self, request):
+		"""
+		Return user profile data and groups
+		"""
+		try:
+
+			data = request.data
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			serializer = self.get_serializer(self.services.update_interview_service(id), data=request.data)
+			if not serializer.is_valid():
+				raise ParseException(BAD_REQUEST, serializer.errors)
+			else:
+				serializer.save()
+				return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+
+	@action(methods=['get'], detail=False, permission_classes=[])
+	def interview_filter(self, request):
+		"""
+		"""
+		try:
+			id = request.GET["id"]
+			serializer = self.get_serializer(self.services.interview_filter_service(id))
+			return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+	@action(methods=['get'], detail=False, permission_classes=[])
+	def delete_interview(self,request):
+		"""
+		Returns delete interview
+		"""
+		id= request.GET.get('id', None)
+		if not id:
+				return Response({"status": False, "message":"id is required"})
+		try:
+			interview_obj = self.services.get_interview_service(id)
+		except Interview.DoesNotExist:
+			raise
+			return Response({"status": False}, status.HTTP_404_NOT_FOUND)
+		interview_obj.delete()
+		return Response({"status":"interview is deleted "}, status.HTTP_200_OK)
+
+
+
+
 
 
 ###################################################################################
 
 
 class InterviewRoundViewSet(GenericViewSet):
-    """docstring for interview"""
+	"""docstring for interview"""
 
-    services = InterviewRound_Services()
+	services = InterviewRound_Services()
 
-    queryset = services.get_queryset()
+	queryset = services.get_queryset()
 
-    filter_backends = (filters.OrderingFilter,)
-    authentication_classes = (TokenAuthentication,)
+	filter_backends = (filters.OrderingFilter,)
+	authentication_classes = (TokenAuthentication,)
 
-    ordering_fields = ('id',)
-    ordering = ('id',)
-    lookup_field = 'id'
-    http_method_names = ['get', 'post', 'put']
+	ordering_fields = ('id',)
+	ordering = ('id',)
+	lookup_field = 'id'
+	http_method_names = ['get', 'post', 'put']
 
-    serializers_dict = {
-        'add_round': InterviewRoundRequestSerializer,
-        'round_get': InterviewRoundListSerializer,
-        'round_list': InterviewRoundListSerializer,
-    }
+	serializers_dict = {
+		'add_round': InterviewRoundRequestSerializer,
+		'round_get': InterviewRoundListSerializer,
+		'round_list': InterviewRoundListSerializer,
+	}
 
-    def get_serializer_class(self):
-        """
-        :return:
-        """
-        try:
-            return self.serializers_dict[self.action]
-        except KeyError as key:
-            raise ParseException(BAD_ACTION, errors=key)
+	def get_serializer_class(self):
+		"""
+		:return:
+		"""
+		try:
+			return self.serializers_dict[self.action]
+		except KeyError as key:
+			raise ParseException(BAD_ACTION, errors=key)
 
-    @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ], )
-    def add_round(self, request):
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def add_round(self, request):
 
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid() is False:
-            raise ParseException(BAD_REQUEST, serializer.errors)
+		serializer = self.get_serializer(data=request.data)
+		if serializer.is_valid() is False:
+			raise ParseException(BAD_REQUEST, serializer.errors)
 
-            interview = serializer.create(serializer.validated_data)
-        if interview:
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+			interview = serializer.create(serializer.validated_data)
+		if interview:
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
 
-    @action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )
-    def round_get(self, request):
-        """
+	@action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def round_get(self, request):
+		"""
 		Return client profile data and groups
 		"""
-        try:
-            id= request.GET.get('id', None)
-            if not id:
-                return Response({"status": "Failed", "message":"id is required"})
-            else:
-                serializer = self.get_serializer(self.services.get_Round_service(id))
-                return Response(serializer.data, status.HTTP_200_OK)
-            except Exception as e:
-                return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+		try:
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_Round_service(id))
+				return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
-    @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
-    def round_list(self, request):
-        data = self.get_serializer(self.queryset, many=True).data
-        return Response(data, status.HTTP_200_OK)
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def round_list(self, request):
+		data = self.get_serializer(self.queryset, many=True).data
+		return Response(data, status.HTTP_200_OK)
 
 
 class InterviewStatusViewSet(GenericViewSet):
-    services = InterviewStatus_Services()
+	services = InterviewStatus_Services()
 
-    queryset = services.get_queryset()
+	queryset = services.get_queryset()
 
-    filter_backends = (filters.OrderingFilter,)
-    authentication_classes = (TokenAuthentication,)
+	filter_backends = (filters.OrderingFilter,)
+	authentication_classes = (TokenAuthentication,)
 
-    ordering_fields = ('id',)
-    ordering = ('id',)
-    lookup_field = 'id'
-    http_method_names = ['get', 'post', 'put']
+	ordering_fields = ('id',)
+	ordering = ('id',)
+	lookup_field = 'id'
+	http_method_names = ['get', 'post', 'put']
 
-    serializers_dict = {
-        'add_status': InterviewStatusRequestSerializer,
-        'status_get': InterviewStatusListSerializer,
-        'status_list': InterviewStatusListSerializer,
-    }
+	serializers_dict = {
+		'add_status': InterviewStatusRequestSerializer,
+		'status_get': InterviewStatusListSerializer,
+		'status_list': InterviewStatusListSerializer,
+	}
 
-    def get_serializer_class(self):
-        """
+	def get_serializer_class(self):
 		"""
-        try:
-            return self.serializers_dict[self.action]
-        except KeyError as key:
-            raise ParseException(BAD_ACTION, errors=key)
+		"""
+		try:
+			return self.serializers_dict[self.action]
+		except KeyError as key:
+			raise ParseException(BAD_ACTION, errors=key)
 
-    @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ], )
-    def add_status(self, request):
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def add_status(self, request):
 
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid() is False:
-            raise ParseException(BAD_REQUEST, serializer.errors)
-            interview = serializer.create(serializer.validated_data)
-            if interview:
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-                return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+		serializer = self.get_serializer(data=request.data)
+		if serializer.is_valid() is False:
+			raise ParseException(BAD_REQUEST, serializer.errors)
+			interview = serializer.create(serializer.validated_data)
+			if interview:
+				return Response(serializer.data, status=status.HTTP_201_CREATED)
+			return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
 
-    @action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )
-    def status_get(self, request):
-        """
+	@action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def status_get(self, request):
+		"""
 		Return client profile data and groups
 		"""
-        try:
-            id= request.GET.get('id', None)
-            if not id:
-                return Response({"status": "Failed", "message":"id is required"})
-            else:
-                serializer = self.get_serializer(self.services.get_status_service(id))
-                return Response(serializer.data, status.HTTP_200_OK)
-            except Exception as e:
-                return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+		try:
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_status_service(id))
+				return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+				return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
-    @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
-    def status_list(self, request):
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def status_list(self, request):
 
-        data = self.get_serializer(self.queryset, many=True).data
-        return Response(data, status.HTTP_200_OK)
+		data = self.get_serializer(self.queryset, many=True).data
+		return Response(data, status.HTTP_200_OK)

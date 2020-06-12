@@ -1,5 +1,6 @@
 # django imports
 from rest_framework import filters
+import json
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -8,13 +9,12 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from .permissions import HiroolReadOnly
-import math, random
+
 from django.core.mail import send_mail
-from django.template.loader import render_to_string, get_template
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import get_template
+
 from django.template.loader import render_to_string
 from django.conf import settings
+
 
 # app level imports
 from .models import User, Actions, Permissions, UserPermissions
@@ -101,13 +101,13 @@ class UserViewSet(GenericViewSet):
 		if serializer.is_valid() is False:
 			raise ParseException(BAD_REQUEST, serializer.errors)
 			user = serializer.create(serializer.validated_data)
-			if user:
-				msg_plain = render_to_string('email_message.txt', {"user": user.first_name})
-				msg_html = render_to_string('email.html', {"user": user.first_name})
-				send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [user.email], html_message=msg_html)
-				return Response(serializer.data, status=status.HTTP_201_CREATED)
-			return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
-
+		if user:
+			msg_plain = render_to_string('email_message.txt', {"user": user.first_name})
+			msg_html = render_to_string('email.html', {"user": user.first_name})
+			send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [user.email], html_message=msg_html)
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+		
 
 	@action(methods=['post'], detail=False, permission_classes=[])
 	def login(self, request):
@@ -155,31 +155,6 @@ class UserViewSet(GenericViewSet):
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
-	# data = self.get_serializer(self.get_queryset(), many=True).data
-	# return Response(data, status.HTTP_200_OK)
-
-	@action(
-		methods=['get', 'patch'],
-		detail=False,
-		# url_path='image-upload',
-		permission_classes=[IsAuthenticated, ],
-	)
-	def exec(self, request):
-		"""
-		Return user data and groups
-		"""
-
-		try:
-			id = request.GET.get('id', None)
-			if not id:
-				return Response({"status": "Failed", "message":"id is required"})
-			else:
-				serializer = self.get_serializer(self.services.get_user(id))
-				return Response(serializer.data, status.HTTP_200_OK)
-			except Exception as e:
-				return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
-
 
 
 	@action(methods=['get', 'patch'],
@@ -198,6 +173,8 @@ class UserViewSet(GenericViewSet):
 			'image_url': request.user.image_url,
 		}
 		return Response(response, status.HTTP_200_OK)
+
+
 
 	@action(
 		methods=['get', 'put'],
@@ -218,12 +195,14 @@ class UserViewSet(GenericViewSet):
 			else:
 				serializer = self.get_serializer(self.services.update_user(id), data=request.data)
 				if not serializer.is_valid():
-				raise ParseException(BAD_REQUEST, serializer.errors)
-			else:
-				serializer.save()
-				return Response(serializer.data, status.HTTP_200_OK)
+					raise ParseException(BAD_REQUEST, serializer.errors)
+				else:
+					serializer.save()
+					return Response(serializer.data, status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
 
 	@action(
 		methods=['put'],
@@ -231,16 +210,6 @@ class UserViewSet(GenericViewSet):
 		# url_path='image-upload',
 		permission_classes=[IsAuthenticated, ],
 	)
-	def change_pass(self, request):
-		"""
-		Returns user change password
-		"""
-		data = request.data
-		password = data['password']
-		user = User.objects.get(id=request.user.id)
-		user.set_password(password)
-		user.save()
-		return Response({"status": "success"}, status.HTTP_200_OK)
 
 	@action(
 		methods=['get'],
@@ -254,11 +223,11 @@ class UserViewSet(GenericViewSet):
 			email = request.GET.get('email', None)
 			if not email:
 				return Response({"status": "Failed", "message":"email  is required"})
-			else:  
-				user_obj= User.objects.get(email=email)
+			else:
+				user_obj = self.services.email_service(email)  
 				otp = otpgenerate.otpgen(self)
-				msg_plain = render_to_string('email_message.txt', {"user":otp})
-				msg_html = render_to_string('password_reset_email.html', {"user": request.user.email})
+				msg_plain = render_to_string('email_message.txt', {"user":request.user.email,"name":request.user.first_name})
+				msg_html = render_to_string('otp_template.html', {"user":otp})
 				redis_client.store_data(email, otp)
 				send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [request.user.email], html_message=msg_html, )
 				return Response({"status": "email sent"}, status.HTTP_200_OK)
@@ -273,21 +242,20 @@ class UserViewSet(GenericViewSet):
 		send mail api
 		"""
 		try:
-			email = request.GET["email"]
-			d = User.objects.get(email=email)
-			subject, from_email, to = 'hello', settings.EMAIL_HOST_USER, [request.user.email]
-			text_content = 'This is your otp.'
-			first_name = request.user.first_name
-			last_name = request.user.last_name
-			role_id = request.user.role_id
-			html_content = "your first name:" + first_name + " <br> last name:" + last_name + " <br> role_id:" + role_id + " <br>"
-			msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-			msg.attach_alternative(html_content, "text/html")
-			msg.send()
-			return Response("hi")
+			email = request.GET.get('email', None)
+			if not email:
+				return Response({"status": "Failed", "message":"email  is required"})
+			else:
+				user_obj = User.objects.get(email=email,is_active=True)
+				otp = otpgenerate.otpgen(self)
+				print(otp)
+				redis_client.store_data(email,otp)
+				print(redis_client.get_Key_data(email))
+				mail.sendmail.delay(otp,"Forgate password",[request.user.email])
+				return Response({"status":"email sent"}, status.HTTP_200_OK)
 		except Exception as e:
-			raise
 			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
+
 
 	@action(
 		methods=['put'],
@@ -299,26 +267,26 @@ class UserViewSet(GenericViewSet):
 		"""
 		try:
 			data = request.data
-			self.object = User.objects.get(email=data["email"], is_active=True)
-
+			user_obj = User.objects.get(email=data["email"], is_active=True)
 			if not redis_client.key_exists(data["email"]):
-				print(redis_client.key_exists(data["email"]))
+				print(data["email"])
 				return Response({"status": "Bad Otp"}, status=status.HTTP_400_BAD_REQUEST)
-
-			if not redis_client.get_Key_data(data["email"]).decode("utf-8") == data["reset_otp"]:
+			if not redis_client.get_Key_data(data["email"]):
+				print(data["email"])
 				return Response({"status": "Bad Otp"}, status=status.HTTP_400_BAD_REQUEST)
 
 			redis_client.delete_Key_data(data["email"])
 
-			serializer = self.get_serializer(self.object, data=data)
+			serializer = self.get_serializer(user_obj, data=data)
 			if not serializer.is_valid():
-				return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
+				return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 			try:
 				serializer.save()
 				return Response({"status": "Successfully Updated password"}, status.HTTP_200_OK)
 			except Exception as e:
 				return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
 		except Exception as e:
+			raise
 			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
 
 	@action(
@@ -342,18 +310,19 @@ class UserViewSet(GenericViewSet):
 			return Response({"status": "Successfully Updated new password"}, status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
+	
 
-	@action(
-		methods=['put'],
-		detail=False,
-		permission_classes=[IsAuthenticated, ],
-	)
-	def send_sms(self, request):
-		frm = '+917483206167'
-		to = '+919108258657'
-		text = 'Please remember to pick up the bread before coming'
-		send_text(text, frm, to)
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def menu_sidebar(self, request):
+		myfile= open('/home/priya/workspace/hire-api/api/libs/json_files/menu_sidebar.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		return Response(obj)
 
+	
 	@action(
 		methods=['get'],
 		detail=False, permission_classes=[IsAuthenticated, ],
@@ -543,12 +512,12 @@ class ActionViewSet(GenericViewSet):
 		return Response(data, status.HTTP_200_OK)
 	
 
-# 	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
-# 	def list_actions(self, request):
-# 		"""
-# 		Return user profile data and groups
-# 		"""
-# 		 data=request.data
+#   @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
+#   def list_actions(self, request):
+#       """
+#       Return user profile data and groups
+#       """
+#        data=request.data
 # # user=User.objects.get(id=request.user.id).password
 # print(user)
 # if(old_password==user):

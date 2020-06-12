@@ -58,10 +58,20 @@ class CandidateListSerializer(serializers.ModelSerializer):
 		fields = ('id','name','email','profile_link',
 		'sslc','puc','degree','master','sslc_per','puc_per','degree_per',
 		'master_per','certification','work_experience','previous_company','prepared_location',
-		'address','previous_ctc','expected_ctc','notice_days','tech_skills',
+		'address','resume','previous_ctc','expected_ctc','notice_days','tech_skills',
 		'status')         
 
-		# fields= '__all__'   
+		# fields= '__all__'  
+
+class CandidateDropdownListSerializer(serializers.ModelSerializer):
+	"""
+	"""
+	class Meta:
+		model=Candidate
+		fields = ('id','name')
+
+
+
 
 class CandidateUpdateSerializer(serializers.ModelSerializer):
 	name = serializers.CharField(required=True)

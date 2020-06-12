@@ -36,6 +36,11 @@ router.register(r'actions', account_views.ActionViewSet, base_name='accounts')
 # register clients app urls with router
 router.register(r'clients', client_view.ClientViewSet, base_name='client')
 
+router.register(r'clientindustry', client_view.ClientIndustryViewSet, base_name='client')
+
+router.register(r'clientcategory',client_view.ClientCategoryViewSet,base_name='clients')
+
+
 # register job app urls with router
 router.register(r'jd', client_view.JobViewSet, base_name='jd')
 

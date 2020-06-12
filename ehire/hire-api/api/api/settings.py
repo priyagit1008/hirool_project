@@ -45,7 +45,7 @@ GOOGLE_MAP_CONFIG["KEY"] = os.getenv("HIRE_API_GOOGLE_MAP_KEY", "")
 
 # Redis Config
 REDIS_CONFIG["HOST"] = os.getenv("HIRE_API_REDIS_HOST", "localhost")
-REDIS_CONFIG["PORT"] = int(os.getenv("HIRE_API_REDIS_PORT", "0"))
+REDIS_CONFIG["PORT"] = int(os.getenv("HIRE_API_REDIS_PORT", "6379"))
 REDIS_CONFIG["DB"] = int(os.getenv("HIRE_API_REDIS_DB", "0"))
 REDIS_CONFIG["PASSWORD"] = os.getenv("HIRE_API_REDIS_PASSWORD", "")
 

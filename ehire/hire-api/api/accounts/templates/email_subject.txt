@@ -1,2 +1,2 @@
 Hello {{user}}-“Registration Successful! .
-hi{{lname}}-hello
+hi{{name}}-hello

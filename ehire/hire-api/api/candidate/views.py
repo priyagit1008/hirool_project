@@ -28,6 +28,7 @@ from .serializers import (
 	CandidateListSerializer,
 	CandidateListSerializer,
 	CandidateUpdateSerializer,
+	CandidateDropdownListSerializer,
 	)
 from .services import CandidateServices
 from libs.constants import (
@@ -64,6 +65,7 @@ class CandidateViewSet(GenericViewSet):
 			'candidate_list':CandidateListSerializer,
 			'candidate_get':CandidateListSerializer,
 			'candidate_update':CandidateUpdateSerializer,
+			'candidate_dropdown':CandidateDropdownListSerializer,
 			}
 
 	def get_serializer_class(self):
@@ -111,9 +113,6 @@ class CandidateViewSet(GenericViewSet):
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
-		# data = self.get_serializer(self.queryset,many=True).data
-		# return Response(data, status.HTTP_200_OK)
-
 
 
 
@@ -123,9 +122,12 @@ class CandidateViewSet(GenericViewSet):
 		Returns single candidate details
 		"""
 		try:
-			id = request.GET["id"]
-			serializer = self.get_serializer(self.services.get_candidate_service(id))
-			return Response(serializer.data,status.HTTP_200_OK)
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_candidate_service(id))
+				return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
@@ -148,6 +150,24 @@ class CandidateViewSet(GenericViewSet):
 				return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	def candidate_dropdown(self,request):
+		"""
+		Returns single candidate details
+		"""
+		try:
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_candidate_service(id))
+				return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
 
 	@action(
 		methods=['get'],
@@ -197,5 +217,4 @@ class CandidateViewSet(GenericViewSet):
 			send_mail('Hirool',msg_plain,settings.EMAIL_HOST_USER,[candidate.email],html_message=msg_html)
 			return Response("hi")
 		except Exception as e:
-			raise
 			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
