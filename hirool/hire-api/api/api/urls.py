@@ -25,6 +25,9 @@ router.register(r'', misc_views.APIConfViewSet, base_name='misc')
 # register accounts app urls with router
 router.register(r'accounts', account_views.UserViewSet, base_name='accounts')
 
+router.register(r'userroles',account_views.UserRoleViewSet,base_name='userroles')
+
+
 router.register(r'permissions', account_views.PermissionsViewSet, base_name='accounts')
 
 router.register(r'userpermissions', account_views.UserPermissionsViewSet, base_name='accounts')
@@ -35,6 +38,11 @@ router.register(r'actions', account_views.ActionViewSet, base_name='accounts')
 
 # register clients app urls with router
 router.register(r'clients', client_view.ClientViewSet, base_name='client')
+
+router.register(r'clientindustry', client_view.ClientIndustryViewSet, base_name='client')
+
+router.register(r'clientcategory',client_view.ClientCategoryViewSet,base_name='clients')
+
 
 # register job app urls with router
 router.register(r'jd', client_view.JobViewSet, base_name='jd')
@@ -48,6 +56,7 @@ router.register(r'interviews',interview_view.InterviewViewSet,base_name='intervi
 router.register(r'interviewsround',interview_view.InterviewRoundViewSet,base_name='interviews')
 
 router.register(r'interviewsstatus',interview_view.InterviewStatusViewSet,base_name='interviews')
+
 
 
 

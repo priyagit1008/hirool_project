@@ -2,7 +2,7 @@
 from rest_framework import serializers
 
 # app level imports
-from .models import Client, Job
+from .models import Client, Job,Clientindustry,Clientcategory
 from libs.helpers import time_it
 
 
@@ -12,14 +12,21 @@ class ClientCreateRequestSerializer(serializers.Serializer):
     """
     name = serializers.CharField(required=False)
     web_link = serializers.CharField(required=False)
+    ceo= serializers.CharField(required=False)
+    founder= serializers.CharField(required=False)
+    founded_on= serializers.CharField(required=False)
+    email= serializers.CharField(required=False)
+    mobile= serializers.CharField(required=False)
+    revenue= serializers.CharField(required=False)
+    latest_funding= serializers.CharField(required=False)
     headquarter = serializers.CharField(required=False)
     address = serializers.CharField(required=True)
-    category = serializers.CharField(required=True)
-    business_type = serializers.CharField(required=True)
-    # status = serializers.CharField(required=False)
-    profile_desc = serializers.CharField(required=False)
-    aggrement_doc = serializers.CharField(required=True)
-    extra = serializers.JSONField(required=False)
+    profile_desc= serializers.CharField(required=False)
+    aggrement_doc= serializers.CharField(required=False)
+    status= serializers.CharField(required=False)
+    clientindustry= serializers.PrimaryKeyRelatedField(queryset=Clientindustry.objects.all(),required=False)
+    Clientcategory= serializers.PrimaryKeyRelatedField(queryset=Clientcategory.objects.all(),required=False)
+    
 
     # password = serializers.CharField(required=True, min_length=5)
     class Meta:
@@ -44,14 +51,22 @@ class ClientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         # Tuple of serialized model fields (see link [2])
-        # fields = ( "id" )
-        fields = (
-            'id', 'name', 'web_link', 'headquarter', 'address', 'category',
-            'business_type', 'status', 'profile_desc', 'aggrement_doc',
-            'extra'
-        )
+        fields = '__all__'
+        # fields = (
+        #     'id', 'name', 'web_link', 'headquarter', 'address', 'category',
+        #     'business_type', 'status', 'profile_desc'
+        # )
         # write_only_fields = ('password',)
         # read_only_fields = ('id',)
+
+class ClientGetSerializer(serializers.Serializer):
+    value = serializers.CharField(source='address',required=True, min_length=2)
+    label = serializers.CharField(source='address',required=True, min_length=2)
+    class Meta:
+        model = Client
+        fields = ('id','value','label')
+        
+
 
 class ClientUpdateSerializer(serializers.ModelSerializer):
     """docstring for ClientUpdateSerializer"""
@@ -78,8 +93,45 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
     #     print(data)
 
     #     fields=('id','name','web_link','address')
+class ClientindustryRequestSerializer(serializers.Serializer):
+    """
+    ClientCreateRequestSerializer
+    """
+    client_industry=serializers.CharField(required=True)
 
-        
+    class Meta:
+        models = Clientindustry
+        fields = ('id','client_industry')
+
+    def create(self, validated_data):
+        industry= Clientindustry.objects.create(**validated_data)
+        return industry
+
+class clientindustryListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Clientindustry
+        fields= '__all__'
+
+
+class ClientcategoryRequestSerializer(serializers.Serializer):
+    """
+    ClientCreateRequestSerializer
+    """
+    client_category=serializers.CharField(required=True)
+
+    class Meta:
+        models = Clientcategory
+        fields = '__all__'
+
+    def create(self, validated_data):
+        category= Clientcategory.objects.create(**validated_data)
+        return category
+
+class ClientcategoryListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Clientcategory
+        fields= '__all__'
+                
 
 
 class JobCreateRequestSerializer(serializers.Serializer):

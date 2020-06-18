@@ -6,7 +6,7 @@ from rest_framework import serializers
 # from .models import User,Actions,Permissions,UserPermissions
 from libs.helpers import time_it
 # projet level import
-from .models import User,Actions,Permissions,UserPermissions
+from .models import User,Actions,Permissions,UserPermissions,UserRole
 
 
 class UserLoginRequestSerializer(serializers.ModelSerializer):
@@ -18,7 +18,7 @@ class UserLoginRequestSerializer(serializers.ModelSerializer):
 	#     max_value=9999999999
 	# )
 	email = serializers.EmailField(required=True)
-	password = serializers.CharField(required=True, min_length=5)
+	password = serializers.CharField(required=True)
 
 	class Meta:
 		model = User
@@ -27,6 +27,13 @@ class UserLoginRequestSerializer(serializers.ModelSerializer):
 		#     'first_name', 'last_name', 'mobile', 'access_token',
 		#     'is_active', 'email', 'image_url'
 		# )
+
+class UserVerifyRequestSerializer(serializers.Serializer):
+	"""
+	UserLoginSerializer
+	"""
+	email = serializers.SerializerMethodField()
+	otp = serializers.CharField()
 
 
 # class UserSerializer(serializers.ModelSerializer):
@@ -51,33 +58,59 @@ class UserLoginRequestSerializer(serializers.ModelSerializer):
 
 class UserRegSerializer(serializers.ModelSerializer):
 
-	email = serializers.EmailField(required=True)
-	password = serializers.CharField(required=True, min_length=5)
+	email = serializers.EmailField(source='email',required=True)
+	password = serializers.CharField(required=False, min_length=5)
 	first_name = serializers.CharField(required=True, min_length=2)
 	last_name = serializers.CharField(required=True, min_length=2)
 	mobile = serializers.IntegerField(
-		required=False,
+		required=True,
 		min_value=5000000000,
 		max_value=9999999999
 	)
-	role_id = serializers.CharField(required=True, min_length=6)
+	dob=serializers.DateTimeField(required=False)
+	gender=serializers.CharField(required=False)
+	address=serializers.CharField(required=False,)
+	qualification=serializers.CharField(required=False)
+	specialization=serializers.CharField(required=False)
+	marks=serializers.CharField(required=False)
+	passing_year=serializers.CharField(required=False)
+	college=serializers.CharField(required=False)
+	work_experience=serializers.CharField(required=False)
+	skills=serializers.JSONField(required=False)
+	designation=serializers.CharField(required=False)
+	anual_salary=serializers.CharField(required=False)
+	work_loc=serializers.CharField(required=False)
+	status=serializers.CharField(required=False)
+	profile_pic=serializers.ImageField(required=False)
+
+	joined_date=serializers.DateTimeField(required=False)
+	resigned_date=serializers.DateTimeField(required=False)
+	exit_date=serializers.DateTimeField(required=False)
+	reporting_to=serializers.CharField(required=False)
+
+	
+	# role_id = serializers.CharField(required=True, min_length=6)
 
 	class Meta:
 		model = User
 		# Tuple of serialized model fields (see link [2])
 		# fields = ( "id", "username", "password", )
-		fields = ('id', 'password', 'email', 'first_name', 'last_name', 'mobile', 'role_id')
+		fields = ('id','email', 'first_name','last_name', 'mobile','profile_pic',
+			'dob','gender','address','qualification','specialization','marks','passing_year','anual_salary','work_loc',
+			'college','work_experience','skills','designation','status','joined_date','resigned_date','exit_date','reporting_to','password')
+		# fields='__all__'
 		write_only_fields = ('password',)
 		read_only_fields = ('id',)
 
 	@time_it
 	def create(self, validated_data):
-		user = User.objects.create(
-			email=validated_data['email'],
-			first_name=validated_data['first_name'],
-			last_name=validated_data['last_name'],
-			mobile=validated_data.get('mobile', 9988776655),
-			role_id=validated_data['role_id'],
+		user = User.objects.create(**validated_data
+			# email=validated_data['email'],
+			# first_name=validated_data['first_name'],
+			# last_name=validated_data['last_name'],
+			# mobile=validated_data.get('mobile', 9988776655)
+			#   # role_id=validated_data['role_id'],
+			#   image_url=validated_data['image_url']
 		)
 
 		user.set_password(validated_data['password'])
@@ -85,14 +118,39 @@ class UserRegSerializer(serializers.ModelSerializer):
 
 		return user
 
-
-class UserListSerializer(serializers.ModelSerializer):
-
+class UserListSerialize(serializers.ModelSerializer):
+	
 	class Meta:
 		model = User
-		fields = ('id','first_name', 'last_name','email','mobile' ,'is_active',
-		 'role_id')
-		# fields = '__all__'
+		# fields='__all__'
+		fields = ('id','email', 'first_name','last_name', 'mobile','profile_pic',
+			'dob','gender','address','qualification','specialization','marks','passing_year','anual_salary','work_loc',
+			'college','work_experience','skills','designation','status','joined_date','resigned_date','exit_date','reporting_to')
+
+class UserGetallSerializer(serializers.ModelSerializer):
+	
+	class Meta:
+		model = User
+		fields = ('id','email')
+
+
+class UserGetSerializer(serializers.Serializer):
+	# value = serializers.CharField(source='qualification',required=True, min_length=2)
+	# label = serializers.CharField(source='qualification',required=True, min_length=2)
+	class Meta:
+		model = User
+		# fields=('id','email', 'first_name','last_name', 'mobile','profile_pic',
+		#   'dob','gender','address','value','label','specialization','marks','passing_year','anual_salary','work_loc',
+		#   'college','work_experience','skills','designation','status','joined_date','resigned_date','exit_date','reporting_to'),
+
+		
+		# fields = ('id','getuser','value','label')
+		
+		fields = '__all__'
+
+
+
+
 
 class UserUpdateRequestSerializer(serializers.ModelSerializer):
 	"""
@@ -145,18 +203,18 @@ class clientserializer(serializers.ModelSerializer):
 
 class UserPassUpdateSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = User
-        fields = ('id','password',)
+	class Meta:
+		model = User
+		fields = ('id','password',)
 
-    def validate(self,data):
-        return data
+	def validate(self,data):
+		return data
 
-    def update(self, instance, validated_data):
-        if 'password' in validated_data:
-            instance.set_password(validated_data.get('password'))
-        instance.save()
-        return instance
+	def update(self, instance, validated_data):
+		if 'password' in validated_data:
+			instance.set_password(validated_data.get('password'))
+		instance.save()
+		return instance
 
 
 	# def update(self,instance,validated_data):
@@ -164,6 +222,31 @@ class UserPassUpdateSerializer(serializers.ModelSerializer):
 	#     instance.save()
 	#     print(data)
 	#     return instance
+
+class UserRoleCreateRequestSerializer(serializers.Serializer):
+	role_name = serializers.CharField(required=True)
+
+	class Meta:
+		model = UserRole
+		fields = (
+			'id','role_name'
+		)
+
+
+	def create(self,validated_data):
+		userrole = UserRole.objects.create(**validated_data)
+		return userrole
+
+
+class UserRoleListSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = UserRole
+		fields = (
+			'id','role_name'
+		)
+
+
+
 
  ############################################################################## 
 class UserPermissionCreateRequestSerializer(serializers.Serializer):

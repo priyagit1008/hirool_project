@@ -10,7 +10,6 @@ import uuid
 # third party imports
 from model_utils import Choices
 
-
 from datetime import timedelta
 from django.utils import timezone
 
@@ -19,13 +18,13 @@ from django.utils import timezone
 
 def user_directory_path(instance, filename): 
   
-    extension  = filename.split(".")[-1]
-    # return 'user_%S/%s'.format(instance.id,filename)
-    # extension = filename[0-5]
-    return 'user_{0}/{1}.{2}'.format("resumes",instance.id,extension) 
+	extension  = filename.split(".")[-1]
+	# return 'user_%S/%s'.format(instance.id,filename)
+	# extension = filename[0-5]
+	return 'user_{0}/{1}.{2}'.format("resumes",instance.id,extension) 
 
-    # return 'user_{0}/{1}.{2}'.format("resumes",instance.id,extension)
-    # return 'user_{0}/{1}'.format("resumes",instance.id) 
+	# return 'user_{0}/{1}.{2}'.format("resumes",instance.id,extension)
+	# return 'user_{0}/{1}'.format("resumes",instance.id) 
 
 
 class Candidate(TimeStampedModel):
@@ -35,10 +34,16 @@ class Candidate(TimeStampedModel):
 		('active', 'ACTIVE'),
 		('inactive', 'INACTIVE'),
 	)
+	GENDER = Choices(
+		('M', 'Male'),
+		('F', 'Female'),
+		('O', 'Other'),
+	)
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	name = models.CharField(max_length=512, default=None, null=False, blank=False)
+	first_name=models.CharField(max_length=512, default=None, null=False, blank=False)
+	last_name=models.CharField(max_length=512, default=None, null=False, blank=False)
 	email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False)
-	profile_link = models.CharField(max_length=1024, default=None, blank=True)
+	candidate_url = models.CharField(max_length=1024, default=None, blank=True)
 	mobile = models.BigIntegerField(
 		validators=[
 			MinValueValidator(5000000000),
@@ -46,27 +51,40 @@ class Candidate(TimeStampedModel):
 		],
 		unique=True,
 		db_index=True,)
-	sslc=models.CharField(max_length=100,blank=False,default=None)
-	puc=models.CharField(max_length=100,blank=False,default=None)
-	degree = models.CharField(max_length=100,blank=False,default=None)
-	master=models.CharField(max_length=100,blank=True,default=None)
-	sslc_per=models.CharField(max_length=100,blank=False,default=None)
-	puc_per =models.CharField(max_length=100,blank=False,default=None)
-	degree_per=models.CharField(max_length=100,blank=False,default=None)
-	master_per=models.CharField(max_length=100,blank=True,default=None)
-	certification=JSONField(default={},max_length=100,blank=True)
-	work_experience=models.FloatField(max_length=100,blank=False,default=None)
+	dob=models.DateTimeField(null=True)
+	gender=models.CharField(choices=GENDER, max_length=1, blank=False, default=GENDER.M)
+	sslc_marks=models.CharField(max_length=100,blank=False,default=None)
+	puc_marks=models.CharField(max_length=100,blank=False,default=None)
+	bachelor_degree = models.CharField(max_length=100,blank=False,default=None)
+	bachelor_degree_course=models.CharField(max_length=100,blank=True,default=None)
+	bachelor_degree_marks=models.CharField(max_length=100,blank=True,default=None)
+	master_degree=models.CharField(max_length=100,blank=True,default=None)
+	master_degree_course=models.CharField(max_length=100,blank=True,default=None)
+	master_degree_marks=models.CharField(max_length=100,blank=True,default=None)
+	address=models.CharField(max_length=1024, default=None, null=False, blank=False)
+	tech_skills= JSONField(default={}, blank=True, null=True)
+	prefered_location=JSONField(default={},max_length=100,blank=False)
 	previous_company=models.CharField(max_length=100,blank=False,default=None)
-	prepared_location=JSONField(default={},max_length=100,blank=False)
-	address = models.CharField(max_length=1024, default=None, null=False, blank=False)
-	resume = models.FileField(upload_to = user_directory_path,blank=False, null=False)
-	previous_ctc = models.FloatField(default=0.0)  # LPA
-	expected_ctc = models.FloatField(default=1000.0)  # LPA
+	work_experience=models.FloatField(max_length=100,blank=False,default=None)
+	current_ctc=models.FloatField(default=0.0)
+	expected_ctc=models.FloatField(default=1000.0)
+	notice_period=models.IntegerField(default=60)
+	resume= models.FileField(upload_to = user_directory_path,blank=False, null=False)
+	status=models.CharField(max_length=256, choices=STATUS, default=STATUS.active)
 
-	notice_days=models.IntegerField(default=60)
-	# is_already_on_notice= models.BooleanField(blank=True)
-	tech_skills = JSONField(default={}, blank=True, null=True)
-	status = models.CharField(max_length=256, choices=STATUS, default=STATUS.active)
+	# certification=JSONField(default={},max_length=100,blank=True)
+	# work_experience=models.FloatField(max_length=100,blank=False,default=None)
+	# previous_company=models.CharField(max_length=100,blank=False,default=None)
+	# prepared_location=JSONField(default={},max_length=100,blank=False)
+	# address = models.CharField(max_length=1024, default=None, null=False, blank=False)
+	# resume = models.FileField(upload_to = user_directory_path,blank=False, null=False)
+	# previous_ctc = models.FloatField(default=0.0)  # LPA
+	# expected_ctc = models.FloatField(default=1000.0)  # LPA
+
+	# notice_days=models.IntegerField(default=60)
+	# # is_already_on_notice= models.BooleanField(blank=True)
+	# tech_skills = JSONField(default={}, blank=True, null=True)
+	# status = models.CharField(max_length=256, choices=STATUS, default=STATUS.active)
 
 
 	def __str__(self):
@@ -86,10 +104,10 @@ class Candidate(TimeStampedModel):
 
 
 # class Candidate_File(TimeStampedModel):
-# 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-# 	file = models.FileField(blank=False, null=False)
-# 	description = models.CharField(max_length=255)
-# 	uploaded_at = models.DateTimeField(auto_now_add=True)
+#   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#   file = models.FileField(blank=False, null=False)
+#   description = models.CharField(max_length=255)
+#   uploaded_at = models.DateTimeField(auto_now_add=True)
 
 
 

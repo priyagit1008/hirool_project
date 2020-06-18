@@ -3,10 +3,10 @@ import os,io
 from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth.decorators import permission_required
-from django.core.mail import EmailMessage,send_mail
-from django.template import Context
+from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.template.loader import render_to_string
+import json 
 
 
 from rest_framework import filters
@@ -29,6 +29,7 @@ from .serializers import (
 	CandidateListSerializer,
 	CandidateListSerializer,
 	CandidateUpdateSerializer,
+	CandidateDropdownListSerializer,
 	)
 from .services import CandidateServices
 from libs.constants import (
@@ -65,6 +66,7 @@ class CandidateViewSet(GenericViewSet):
 			'candidate_list':CandidateListSerializer,
 			'candidate_get':CandidateListSerializer,
 			'candidate_update':CandidateUpdateSerializer,
+			'candidate_dropdown':CandidateDropdownListSerializer,
 			}
 
 	def get_serializer_class(self):
@@ -83,46 +85,51 @@ class CandidateViewSet(GenericViewSet):
 		"""
 		serializer = self.get_serializer(data=request.data)
 		if not serializer.is_valid():
+			print(serializer.errors)
+
 			raise ParseException(BAD_REQUEST, serializer.errors)
+
 		print("create candidate with", serializer.validated_data)
 		candidate= serializer.create(serializer.validated_data)
+
 		if candidate:
-			msg_plain = render_to_string('email_message.txt',{"user":candidate.name})
-			msg_html = render_to_string('email.html',{"user":candidate.name})
-			# mail.send_mail(msg_plain,"hi",candidate.email)
+
+			msg_plain = render_to_string('email_message.txt',{"user":candidate.first_name})
+			msg_html = render_to_string('email.html',{"user":candidate.first_name})
 			send_mail('Hirool',msg_plain,settings.EMAIL_HOST_USER,[candidate.email],html_message=msg_html,)
+
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND) 
 
 
 		
 	
-	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
 	def candidate_list(self,request,**dict):
 		"""
 		Returns candidate list
 		"""
 		try:
 			filter_data=request.query_params.dict()
-			serializer=self.get_serializer(self.services.get_queryset(filter_data), many=True)
+			serializer=self.get_serializer(self.services.get_queryset_service(filter_data), many=True)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
-		# data = self.get_serializer(self.queryset,many=True).data
-		# return Response(data, status.HTTP_200_OK)
 
 
 
-
-	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,HiroolReadOnly],)
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
 	def candidate_get(self,request):
 		"""
 		Returns single candidate details
 		"""
 		try:
-			id = request.GET["id"]
-			serializer = self.get_serializer(self.services.get_candidate_service(id))
-			return Response(serializer.data,status.HTTP_200_OK)
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_candidate_service(id))
+				return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
@@ -146,6 +153,24 @@ class CandidateViewSet(GenericViewSet):
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
+
+	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
+	def candidate_dropdown(self,request):
+		"""
+		Returns single candidate details
+		"""
+		try:
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_candidate_service(id))
+				return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+
 	@action(
 		methods=['get'],
 		detail= False,
@@ -166,6 +191,21 @@ class CandidateViewSet(GenericViewSet):
 		except Exception as e:
 			raise
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	
+
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def candidate_columns(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/candidate_columns.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+
 
 
 	@action(
@@ -177,8 +217,11 @@ class CandidateViewSet(GenericViewSet):
 		Returns total candidate details
 		"""
 		candidate_count = Candidate.objects.count()
-		return Response({"candidate":candidate_count}, status.HTTP_200_OK)
+		active_candidate=Candidate.objects.filter(is_active=True).count()
+		closed_candidate=Candidate.objects.filter(is_active=False).count()
 
+		return Response({"total_candidates": candidate_count,"active_candidates":active_candidate,"closed_candidate":closed_candidate}, status.HTTP_200_OK)
+	
 	@action(
 		methods=['get'],
 		detail=False,permission_classes=[],
@@ -190,16 +233,8 @@ class CandidateViewSet(GenericViewSet):
 		try:
 			msg_plain = render_to_string('email_message.txt',{"user":candidate.email})
 			msg_html = render_to_string('email.html',{"user":candidate.email})
-			# print(request.user.name)
 			mail.sendmail.delay(msg_plain,"hi",[request.user.email])
-			send_mail(
-				'Hirool',
-				msg_plain,
-				'priyapatil1421997@gmail.com',
-				[candidate.email],
-				html_message=msg_html,
-				)
+			send_mail('Hirool',msg_plain,settings.EMAIL_HOST_USER,[candidate.email],html_message=msg_html)
 			return Response("hi")
 		except Exception as e:
-			raise
 			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)

@@ -8,8 +8,7 @@ class CandidateServices:
 
 
 
-	def get_queryset(self,filter_data):
-		
+	def get_queryset_service(self,filter_data):
 		return Candidate.objects.filter(**filter_data)
 
 	def get_candidate_service(self,id):

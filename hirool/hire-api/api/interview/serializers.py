@@ -29,8 +29,7 @@ class InterviewCreateRequestSerializer(serializers.Serializer):
 	# password = serializers.CharField(required=True, min_length=5)
 	class Meta:
 		model = Interview
-		fields = (
-			'id','client', 'job', 'interview_round', 'candidate', 'member',
+		fields = ('id','client', 'job', 'interview_round', 'candidate', 'member',
 			'date', 'location', 'interview_status'
 		)
 
@@ -38,7 +37,7 @@ class InterviewCreateRequestSerializer(serializers.Serializer):
 		interview= Interview.objects.create(**validated_data)
 
 		# user.set_password(validated_data['password'])
-		interview.save()
+		# interview.save()
 
 		return interview
 
@@ -70,10 +69,10 @@ class MemberGetSerializer(serializers.ModelSerializer):
 
 class InterviewGetSerializer(serializers.ModelSerializer):
 
-	# client = ClientGetSerializer()
-	# job = JobGetSerializer()
-	# candidate = CandidateGetSerializer()
-	# member = MemberGetSerializer()
+	client = ClientGetSerializer()
+	job = JobGetSerializer()
+	candidate = CandidateGetSerializer()
+	member = MemberGetSerializer()
 
 	class Meta:
 		model = Interview
@@ -85,16 +84,19 @@ class InterviewGetSerializer(serializers.ModelSerializer):
 		)
 		# write_only_fields = ('password',)
 		# read_only_fields = ('id',)
+
+
 class InterviewListSerializer(serializers.ModelSerializer):
-	# member= MemberGetSerializer()	
-	# client= ClientGetSerializer()
-	# job = JobGetSerializer()
-	# # candidate = CandidateGetSerializer()
+
+	client = ClientGetSerializer(many=True)
+	job = JobGetSerializer(many=True)
+	candidate = CandidateGetSerializer(many=True)
+	member = MemberGetSerializer(many=True)
 
 
 	class Meta:
 		model = Interview
-		
+		# fields = '__all__'
 		fields = (
 
 			'id','client','job','member','candidate',

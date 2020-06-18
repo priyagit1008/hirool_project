@@ -8,7 +8,7 @@ from rest_framework import status
 # from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from accounts.users.permissions import HiroolReadOnly,HiroolReadWrite
-
+import json 
 
 
 # project level imports
@@ -16,24 +16,25 @@ from libs.constants import (
 		BAD_REQUEST,
 		BAD_ACTION,
 )
-# from accounts.constants import COULD_NOT_SEND_OTP, USER_NOT_REGISTERED
 from libs.exceptions import ParseException
-# from rest_framework import permissions
-# from rest_framework.generics import CreateAPIView
-# from django.contrib.auth import get_user_model  # If used custom user model
-# from django.contrib.auth import authenticate
 
 # app level imports
-from .models import Client, Job
+from .models import Client, Job ,Clientindustry,Clientcategory
 
 from .services import ClientServices
 
 from .services import JobServices
+from .services import ClientiIndustryServices,ClientCategoryServices
 
 from .serializers import (
 	ClientCreateRequestSerializer,
 	ClientListSerializer,
 	ClientUpdateSerializer,
+	ClientindustryRequestSerializer,
+	clientindustryListSerializer,
+	ClientcategoryRequestSerializer,
+	ClientcategoryListSerializer,
+	ClientGetSerializer,
 	JobCreateRequestSerializer,
 	JobListSerializer,
 	JobUpdateSerilaizer
@@ -51,16 +52,8 @@ from .serializers import (
 class ClientViewSet(GenericViewSet):
 	"""
 	"""
-	# model=Client
-	# queryset = model.objects.all()
-
 	permissions=(HiroolReadOnly,HiroolReadWrite)
 	services = ClientServices()
-
-	# queryset = services.get_queryset()
-
-
-
 	filter_backends = (filters.OrderingFilter,)
 	authentication_classes = (TokenAuthentication,)
 
@@ -75,6 +68,7 @@ class ClientViewSet(GenericViewSet):
 		'org_list': ClientListSerializer,
 		'org_update': ClientUpdateSerializer,
 		'org_get':ClientListSerializer,
+		'org_dropdown':ClientGetSerializer,
 
 	}
 
@@ -89,14 +83,13 @@ class ClientViewSet(GenericViewSet):
 
 
 
-	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
+	@action(methods=['post'], detail=False, permission_classes=[],)
 	def org(self, request):
 		"""
+		Returns clients account creations
 		"""
 		serializer = self.get_serializer(data=request.data)
-		print(serializer.is_valid())
 		if serializer.is_valid() is False:
-			print(serializer.errors)
 			raise ParseException(BAD_REQUEST, serializer.errors)
 
 		print("create client with", serializer.validated_data)
@@ -107,76 +100,66 @@ class ClientViewSet(GenericViewSet):
 
 		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
-	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
+
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ],)
 	def org_details(self, request):
 		"""
+		Returns client details
 		"""
 		client_id = request.GET.get("id")
 		try:
 			client_obj = Client.objects.get(id=client_id)
 			client_data = self.get_serializer(client_obj).data
-			print("client_data", client_data)
 			return Response(client_data, status.HTTP_200_OK)
 		except Exception as e:
-			print(e)
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+	@action(
+		methods=['get'],
+		detail=False,
+		# url_path='image-upload',
+		permission_classes=[IsAuthenticated, ],
+	)
+	def org_list(self, request, **dict):
+		"""
+		Return user list data and groups
+		"""
+		try:
+			filter_data = request.query_params.dict()
+			serializer = self.get_serializer(self.services.get_queryset(filter_data), many=True)
+			return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
 
-
-
-
-
-
-
-
-
-	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ])
-	def org_list(self, request,**dict):
+	@action(methods=['get'],detail=False,permission_classes=[],)
+	def client_dashboard(self,request):
 		"""
+		Returns total clients
 		"""
-		try:
+		client_count = Client.objects.count()
+		active_Client=Client.objects.filter(is_active=True).count()
+		closed_Client=Client.objects.filter(is_active=False).count()
 
-			filter_data = request.query_params.dict()
-			print(filter_data)
-			serializer=self.get_serializer(self.services.get_queryset(filter_data),many=True)
-			return Response(serializer.data,status.HTTP_200_OK)
-		except Exception as e:
-			raise
-			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
-
-		
+		return Response({"total_clients": client_count,"active_clients":active_Client,"closed_Client":closed_Client}, status.HTTP_200_OK)
 
 
-
-
-
-
-# category = request.query_params.get('category', None)
-
-			# name=request.GET.get("name")
-			# category=request.GET.get("category")
-# print(category)
-			# hiring_location=request.GET.get("hiring_location")
-	
-	@action(methods=['get','put'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
+	@action(methods=['get','put'], detail=False, permission_classes=[IsAuthenticated, ],)
 	def org_update(self,request):
-
+		"""
+		Returns client update
+		"""
 		try:
 			data=request.data
 			id=data["id"]
 			serializer=self.get_serializer(self.services.update_client_service(id),data=request.data)
 			if not serializer.is_valid():
-				print(serializer.errors)
 				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
-				# serializer.update(id_obj,serializer.validated_data)
-				serializer.save()
-				print(serializer.validated_data)
+				serializer.save()    
 				return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
-			# print(str(e))
-			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
 
@@ -184,11 +167,27 @@ class ClientViewSet(GenericViewSet):
 
 	@action(methods=['get', 'patch'],detail=False,
 		# url_path='image-upload',
-		permission_classes=[IsAuthenticated,HiroolReadOnly],
+		permission_classes=[IsAuthenticated,],
 	)
 	def org_get(self, request):
 		"""
-		Return client profile data and groups
+		Return client singal data and groups
+		"""
+		try:
+			id=request.GET["id"]
+			serializer=self.get_serializer(self.services.get_client_service(id))
+			return Response(serializer.data,status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+	
+	@action(methods=['get', 'patch'],detail=False,
+		# url_path='image-upload',
+		permission_classes=[IsAuthenticated,],
+	)
+	def org_dropdown(self, request):
+		"""
+		Return client singal data and groups
 		"""
 		try:
 			id=request.GET["id"]
@@ -198,22 +197,166 @@ class ClientViewSet(GenericViewSet):
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
-	# @action(methods=['put'], detail=False, permission_classes=[IsAuthenticated, ],)
-	# def org_details(self, request):
-	#     """
-	#     """
-	#     serializer = self.get_serializer(data=request.data)
 
-	#     if not serializer.is_valid():
-	#         raise ParseException(BAD_REQUEST, serializer.errors)
-	#     try:
-	#         print(serializer.validated_data)
-	#         d = Client.objects.get(id="input_id")
-	#         data = self.get_serializer(d).data
-	#         return Response(data, status.HTTP_200_OK)
-	#     except Exception as e:
-	#         print(e)
-	#         return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def client_column_jsondata(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/client_columns.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		return Response(obj)
+
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def category_response(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/category_response.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def industry_response(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/industry_response.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+
+
+class ClientIndustryViewSet(GenericViewSet):
+	"""docstring for interview"""
+
+	services = ClientiIndustryServices()
+	# queryset = services.get_queryset()
+
+	filter_backends = (filters.OrderingFilter,)
+	authentication_classes = (TokenAuthentication,)
+
+	ordering_fields = ('id',)
+	ordering = ('id',)
+	lookup_field = 'id'
+	http_method_names = ['get', 'post', 'put']
+
+	serializers_dict = {
+		'add_clientindustry': ClientindustryRequestSerializer,
+		'clientindustry_get': clientindustryListSerializer,
+		'clientindustry_list': clientindustryListSerializer,
+	}
+
+	def get_serializer_class(self):
+		"""
+		:return:
+		"""
+		try:
+			return self.serializers_dict[self.action]
+		except KeyError as key:
+			raise ParseException(BAD_ACTION, errors=key)
+
+
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def add_clientindustry(self, request):
+
+		serializer = self.get_serializer(data=request.data)
+		if serializer.is_valid() is False:
+			raise ParseException(BAD_REQUEST, serializer.errors)
+		industry = serializer.create(serializer.validated_data)
+		if industry:
+			return Response(serializer.data,status.HTTP_201_CREATED)
+		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+
+
+
+	@action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def clientindustry_get(self, request):
+		"""
+		Return client profile data and groups
+		"""
+		try:
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_clientindustry_service(id))
+				return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+
+	# @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
+	# def clientindustry_list(self, request):
+
+	#   data = self.get_serializer(self.services.get_queryset(),many=True).data
+	#   return Response(data, status.HTTP_200_OK)
+
+class ClientCategoryViewSet(GenericViewSet):
+	"""docstring for interview"""
+
+	services = ClientCategoryServices()
+	# queryset = services.get_queryset()
+
+	filter_backends = (filters.OrderingFilter,)
+	authentication_classes = (TokenAuthentication,)
+
+	ordering_fields = ('id',)
+	ordering = ('id',)
+	lookup_field = 'id'
+	http_method_names = ['get', 'post', 'put']
+
+	serializers_dict = {
+		'add_clientcategory': ClientcategoryRequestSerializer,
+		'clientcategory_get': ClientcategoryListSerializer,
+		'clientcategory_list': ClientcategoryListSerializer,
+	}
+
+	def get_serializer_class(self):
+		"""
+		:return:
+		"""
+		try:
+			return self.serializers_dict[self.action]
+		except KeyError as key:
+			raise ParseException(BAD_ACTION, errors=key)
+
+
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def add_clientcategory(self, request):
+
+		serializer = self.get_serializer(data=request.data)
+		if serializer.is_valid() is False:
+			raise ParseException(BAD_REQUEST, serializer.errors)
+		category = serializer.create(serializer.validated_data)
+		if category:
+			return Response(serializer.data,status.HTTP_201_CREATED)
+		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+
+
+
+	@action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )
+	def clientcategory_get(self, request):
+		"""
+		Return client profile data and groups
+		"""
+		try:
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_clientcategory_service(id))
+				return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
 
 
 class JobViewSet(GenericViewSet):
@@ -254,14 +397,13 @@ class JobViewSet(GenericViewSet):
 
 
 
-	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ],)
 	def job(self, request):
 		"""
+		Returns jd details
 		"""
 		serializer = self.get_serializer(data=request.data)
-		print(serializer.is_valid())
 		if not serializer.is_valid():
-			print(serializer.errors)
 			raise ParseException(BAD_REQUEST, serializer.errors)
 
 		print("create job with", serializer.validated_data)
@@ -275,9 +417,10 @@ class JobViewSet(GenericViewSet):
 
 
 
-	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadOnly ],)
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ],)
 	def job_get(self, request):
 		"""
+		Returns single jd details
 		"""
 		try:
 			id = request.GET["id"]
@@ -291,63 +434,51 @@ class JobViewSet(GenericViewSet):
 
 	# @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite],)
 	# def job_list(self, request):
-	# 	"""
-	# 	"""
-	# 	data = self.get_serializer(self.queryset, many=True).data
-	# 	return Response(data, status.HTTP_200_OK)
+	#   """
+	#   """
+	#   data = self.get_serializer(self.queryset, many=True).data
+	#   return Response(data, status.HTTP_200_OK)
 
 	
 
-	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite],)
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,],)
 	def job_list(self, request,**dict):
 		"""
+		Returns all jd details
 		"""
 		try:
 			filter_data = request.query_params.dict()
-			print(filter_data)
 			serializer=self.get_serializer(self.services.get_queryset(filter_data), many=True)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
-			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
-
-
-	
 
 	@action(methods=['get','put'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
 	def job_update(self,request):
 		"""
+		Returns jd edit
 		"""
 		try:
 			data=request.data
 			id=data["id"]
 			serializer=self.get_serializer(self.services.update_job_service(id),data=request.data)
 			if not serializer.is_valid():
-				print(serializer.errors)
 				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
-				# serializer.update(id_obj,serializer.validated_data)
 				serializer.save()
-				print(serializer.validated_data)
 				return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
-			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
-	
-	# @action(methods=['put'], detail=False, permission_classes=[IsAuthenticated, ],)
-	# def job_details(self, request):
-	#     """
-	#     """
-	#     serializer = self.get_serializer(data=request.data)
 
-	#     if not serializer.is_valid():
-	#         raise ParseException(BAD_REQUEST, serializer.errors)
-	#     try:
-	#         print(serializer.validated_data)
-	#         d = Client.objects.get(id="input_id")
-	#         data = self.get_serializer(d).data
-	#         return Response(data, status.HTTP_200_OK)
-	#     except Exception as e:
-	#         print(e)
-	#         return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+	@action(methods=['get'],detail=False,permission_classes=[],)
+	def job_dashboard(self,request):
+		"""
+		Returns total number of jds
+		"""
+		jd_count = Job.objects.count()
+		active_jds=Job.objects.filter(is_active=True).count()
+		closed_jds=Job.objects.filter(is_active=False).count()
+
+		return Response({"total_jds": jd_count,"active_jds":active_jds,"closed_jds":closed_jds}, status.HTTP_200_OK)

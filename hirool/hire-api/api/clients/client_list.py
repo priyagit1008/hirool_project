@@ -50,7 +50,7 @@
             "number_of_employees": "250"
         }
     },
-    {
+    {extra
         "id": "daf92c1d-90f8-4e58-a1bd-d7615e247c0b",
         "name": "A&Z",
         "web_link": "qwer",

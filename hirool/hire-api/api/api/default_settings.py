@@ -54,6 +54,7 @@ THIRD_PARTY_APPS = [
     'filters',
     'rangefilter',
     'django_extensions',
+    # 'crispy_forms',
 ]
 
 LOCAL_APPS = [
@@ -63,11 +64,14 @@ LOCAL_APPS = [
     'gunicorn',
     'clients',
     'interview',
+    'libs',
+
 
 
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+# INSTALLED_APPS += ('kombu.transport.django', )
 
 # MIDDLEWARE = [
 #     'django.middleware.security.SecurityMiddleware',
@@ -347,6 +351,7 @@ CELERY_ROUTES = {
     },
     
 }
+# app.conf.broker_transport_options = {'visibility_timeout': 3600}
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
@@ -406,7 +411,11 @@ OTP_CONFIG = {
     'ALLOWED_LOGIN_ATTEMPTS': 4,
 }
 
-CELERY_BROKER_URL = ""
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379   '
+
+
 
 # Google Maps Config
 GOOGLE_MAP_CONFIG = {
@@ -431,8 +440,19 @@ SMS_CONFIG = {
     "HOST" : ""
 }
 
+# ANYMAIL = {
+
+#    "SENDGRID_API_KEY":"<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>"
+# }
+
+# EMAIL_HOST = 'smtp.sendgrid.net'
+# EMAIL_HOST_USER = 'priyapatil1421997.com'
+# EMAIL_HOST_PASSWORD = 'priyaaru'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'priyapatil1421997@gmail.com'
-EMAIL_HOST_PASSWORD = 'priyaaru'
+EMAIL_HOST_PASSWORD ='priyaaru'

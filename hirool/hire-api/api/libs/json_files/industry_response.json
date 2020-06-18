@@ -1,0 +1,18 @@
+[
+{
+"id":1,
+"value": "finance",
+"label": "Finance"
+
+},
+    {
+    "id":2,
+  "value": "healthcare",
+"label": "Healthcare"
+    },
+    {
+    "id":3,
+      "value": "technology",
+    "label": "Technology"
+    }
+]

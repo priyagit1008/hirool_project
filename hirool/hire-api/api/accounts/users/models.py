@@ -15,6 +15,7 @@ from django.contrib.postgres.fields import JSONField
 from libs.models import TimeStampedModel
 # from libs.clients import sms_client
 # from libs.utils.otp import create_otp
+import django.utils.datetime_safe
 
 # app level imports
 from .managers import UserManager
@@ -64,42 +65,89 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 	"""
 	User model represents the user data in the database.
 	"""
+	STATUS = Choices(
+		('active', 'ACTIVE'),
+		('inactive', 'INACTIVE'),
+	)
+
 	GENDER = Choices(
 		('M', 'Male'),
 		('F', 'Female'),
 		('O', 'Other'),
 	)
-
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False)
-	mobile = models.BigIntegerField(
+
+	first_name= models.CharField(max_length=64, blank=True,default=None)
+	last_name =models.CharField(max_length=64, blank=True,default=None)
+	email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False,default=None)
+	mobile =models.BigIntegerField(
 		validators=[
 			MinValueValidator(5000000000),
 			MaxValueValidator(9999999999),
 		],
 		unique=True,
-		db_index=True,)
-	employee_id = models.CharField(max_length=255, blank=False, default=uuid.uuid4)
+		db_index=True,default=None)
+	dob= models.DateTimeField(null=True)
+	gender=models.CharField(choices=GENDER, max_length=1, blank=False, default=GENDER.M)
+	address=models.CharField(max_length=64, blank=True,default=None)
+	qualification=models.CharField(max_length=64, blank=True,default=None)
+	specialization=models.CharField(max_length=64, blank=True,default=None)
+	marks=models.CharField(max_length=64, blank=True,default=None)
+	passing_year=models.CharField(max_length=64, blank=True,default=None)
+	college=models.CharField(max_length=64, blank=True,default=None)
+	work_experience=models.CharField(max_length=64, blank=True)
+	skills=JSONField(default={}, blank=True, null=True)
+	designation=models.CharField(max_length=64, blank=True)
+	anual_salary=models.CharField(max_length=64, blank=True)
+	work_loc=models.CharField(max_length=64, blank=True)
+	status= models.CharField(max_length=64, choices=STATUS, default=STATUS.active)
 
-	reporting_manager = models.CharField(max_length=64, blank=True)
-	first_name = models.CharField(max_length=64, blank=True)
-	last_name = models.CharField(max_length=64, blank=True)
-	gender = models.CharField(choices=GENDER, max_length=1, blank=False, default=GENDER.M)
-	role = models.ForeignKey(
-		UserRole,
-		on_delete=models.PROTECT,
-		related_name='role',
-		blank=True,
-		null=True
-	)
+	profile_pic= models.ImageField(max_length=255, blank=False)
+	joined_date= models.DateTimeField(null=True)
+	resigned_date= models.DateTimeField(null=True)
+	exit_date= models.DateTimeField(null=True)
+	reporting_to=models.CharField(max_length=64, blank=True)
 
-	image_url = models.CharField(max_length=255, blank=True)
 
-	login_attempts_count = models.IntegerField(default=0)
-	is_blocked = models.BooleanField(default=False)
-	block_reason = models.CharField(max_length=255, blank=True)
-	is_active = models.BooleanField(default=True)
-	is_staff = models.BooleanField(default=True)
+
+
+
+
+
+
+
+
+
+	# id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	# email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False)
+	# mobile = models.BigIntegerField(
+	# 	validators=[
+	# 		MinValueValidator(5000000000),
+	# 		MaxValueValidator(9999999999),
+	# 	],
+	# 	unique=True,
+	# 	db_index=True,)
+	# employee_id = models.CharField(max_length=255, blank=False, default=uuid.uuid4)
+
+	# reporting_manager = models.CharField(max_length=64, blank=True)
+	# first_name = models.CharField(max_length=64, blank=True)
+	# last_name = models.CharField(max_length=64, blank=True)
+	# gender = models.CharField(choices=GENDER, max_length=1, blank=False, default=GENDER.M)
+	# role = models.ForeignKey(
+	# 	UserRole,
+	# 	on_delete=models.PROTECT,
+	# 	related_name='role',
+	# 	blank=True,
+	# 	null=True
+	# )
+
+	# image_url = models.ImageField(max_length=255, blank=False)
+
+	# login_attempts_count = models.IntegerField(default=0)
+	# is_blocked = models.BooleanField(default=False)
+	# block_reason = models.CharField(max_length=255, blank=True)
+	# is_active = models.BooleanField(default=True)
+	# is_staff = models.BooleanField(default=True)
 
 	objects = UserManager()
 

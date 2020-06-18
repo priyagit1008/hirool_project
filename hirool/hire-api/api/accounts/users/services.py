@@ -1,4 +1,4 @@
-from .models import User,UserPermissions,Permissions,Actions
+from .models import User,UserPermissions,Permissions,Actions,UserRole
 
 class UserServices:
 
@@ -10,10 +10,24 @@ class UserServices:
 		
 
 	def update_user(self,id):
-		try:
-			return User.objects.get(id = id)
-		except User.DoesNotExists:
-			return Response("invalid id")
+		return User.objects.get(id = id)
+	
+
+	def update_pass(self,id):
+		return User.objects.get(id=id)
+		
+	def email_service(self,email):
+		return User.objects.get(email=email)
+		
+
+
+class UserRoleService:
+	def get_userall(self):
+		return UserRole.objects.all()
+
+	def get_userpermission_service(self,id):
+		return UserRole.objects.get(id = id)
+
 
 
 

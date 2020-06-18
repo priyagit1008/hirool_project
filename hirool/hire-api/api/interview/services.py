@@ -7,20 +7,15 @@ from candidate.models import Candidate
 
 class InterviewServices:
 
-	# def get_queryset(self):
-		# return Interview.objects.all()
-
+	def interview_filter_service(self,filter_data):
+		return Interview.objects.filter(**filter_data).values()
+		
 	def get_interview_service(self,id):
-		# interview_get=Interview.objects.get(id=id)
 		return Interview.objects.get(id = id)
 
 	def update_interview_service(self,id):
 		return Interview.objects.get(id = id)
 
-
-	def interview_filter_service(self,filter_data):
-		return Interview.objects.filter(**filter_data).values()
-		
 
 
 		
