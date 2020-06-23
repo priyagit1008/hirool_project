@@ -30,7 +30,7 @@
 "sort" : true
 },
 {
-"dataField" : "mobileno",
+"dataField" : "mobile",
 "text" : "Mobile No",
 "sort" : true
 },
@@ -45,7 +45,7 @@
 "sort" : true
 },
 {
-"dataField" : "head_quarter",
+"dataField" : "headquarter",
 "text" : "Head quarter",
 "sort" : true
 },

@@ -32,12 +32,14 @@ from .serializers import (
 	ClientUpdateSerializer,
 	ClientindustryRequestSerializer,
 	clientindustryListSerializer,
+	ClientDrowpdownGetSerializer,
 	ClientcategoryRequestSerializer,
 	ClientcategoryListSerializer,
-	ClientGetSerializer,
+	# ClientGetSerializer,
 	JobCreateRequestSerializer,
 	JobListSerializer,
-	JobUpdateSerilaizer
+	JobGetSerializer,
+	JobUpdateSerilaizer,
 )
 
 
@@ -66,9 +68,10 @@ class ClientViewSet(GenericViewSet):
 		'org': ClientCreateRequestSerializer,
 		'org_details': ClientCreateRequestSerializer,
 		'org_list': ClientListSerializer,
+		'org_dropdown_list':ClientDrowpdownGetSerializer,
 		'org_update': ClientUpdateSerializer,
 		'org_get':ClientListSerializer,
-		'org_dropdown':ClientGetSerializer,
+		# 'org_dropdown':ClientGetSerializer,
 
 	}
 
@@ -83,7 +86,7 @@ class ClientViewSet(GenericViewSet):
 
 
 
-	@action(methods=['post'], detail=False, permission_classes=[],)
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,],)
 	def org(self, request):
 		"""
 		Returns clients account creations
@@ -132,6 +135,25 @@ class ClientViewSet(GenericViewSet):
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
+	@action(
+		methods=['get'],
+		detail=False,
+		# url_path='image-upload',
+		permission_classes=[IsAuthenticated, ],
+	)
+	def org_dropdown_list(self, request, **dict):
+		"""
+		Return user list data and groups
+		"""
+		try:
+			filter_data = request.query_params.dict()
+			serializer = self.get_serializer(self.services.get_queryset(filter_data), many=True)
+			return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+
 
 	@action(methods=['get'],detail=False,permission_classes=[],)
 	def client_dashboard(self,request):
@@ -173,29 +195,17 @@ class ClientViewSet(GenericViewSet):
 		"""
 		Return client singal data and groups
 		"""
+		print(request)
 		try:
 			id=request.GET["id"]
 			serializer=self.get_serializer(self.services.get_client_service(id))
+			print(id)
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 	
-	@action(methods=['get', 'patch'],detail=False,
-		# url_path='image-upload',
-		permission_classes=[IsAuthenticated,],
-	)
-	def org_dropdown(self, request):
-		"""
-		Return client singal data and groups
-		"""
-		try:
-			id=request.GET["id"]
-			serializer=self.get_serializer(self.services.get_client_service(id))
-			return Response(serializer.data,status.HTTP_200_OK)
-		except Exception as e:
-			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
+	# s
 
 
 	@action(methods=['get', 'patch'],detail=False,
@@ -373,7 +383,7 @@ class JobViewSet(GenericViewSet):
 
 	serializers_dict = {
 		'job': JobCreateRequestSerializer,
-		'job_get': JobCreateRequestSerializer,
+		'job_get': JobGetSerializer,
 		'job_list': JobListSerializer,
 		'job_update':JobUpdateSerilaizer,
 
@@ -404,6 +414,7 @@ class JobViewSet(GenericViewSet):
 		"""
 		serializer = self.get_serializer(data=request.data)
 		if not serializer.is_valid():
+			print(serializer.errors)
 			raise ParseException(BAD_REQUEST, serializer.errors)
 
 		print("create job with", serializer.validated_data)
@@ -423,11 +434,23 @@ class JobViewSet(GenericViewSet):
 		Returns single jd details
 		"""
 		try:
-			id = request.GET["id"]
-			serializer=self.get_serializer(self.services.get_job_service(id))
-			return Response(serializer.data,status.HTTP_200_OK)
+			id= request.GET.get('id', None)
+			if not id:
+				return Response({"status": "Failed", "message":"id is required"})
+			else:
+				serializer = self.get_serializer(self.services.get_job_service(id))
+				return Response(serializer.data, status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+		# try:
+		# 	id = request.GET["id"]
+		# 	serializer=self.get_serializer(self.services.get_job_service(id))
+		# 	print(serializer)
+		# 	return Response(serializer.data,status.HTTP_200_OK)
+		# except Exception as e:
+		# 	return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
 
@@ -472,13 +495,13 @@ class JobViewSet(GenericViewSet):
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
 
-	@action(methods=['get'],detail=False,permission_classes=[],)
-	def job_dashboard(self,request):
-		"""
-		Returns total number of jds
-		"""
-		jd_count = Job.objects.count()
-		active_jds=Job.objects.filter(is_active=True).count()
-		closed_jds=Job.objects.filter(is_active=False).count()
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def job_column_jsondata(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/job_columns.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		return Response(obj)
 
-		return Response({"total_jds": jd_count,"active_jds":active_jds,"closed_jds":closed_jds}, status.HTTP_200_OK)

@@ -118,17 +118,17 @@ class Job(TimeStampedModel):
     job_title = models.CharField(max_length=512, default=None, null=False, blank=False)
     jd_url = models.CharField(max_length=1024, default=None, blank=True)
     tech_skills = JSONField(default={}, blank=True, null=True)
-    location = models.CharField(max_length=512, default=None, null=True, blank=True)
+    job_location = models.CharField(max_length=512, default=None, null=True, blank=True)
     job_type = models.CharField(max_length=256, choices=JOB_TYPE, default=JOB_TYPE.permanent)
     min_exp = models.IntegerField(default=0)  # number of years
-    max_exp = models.IntegerField(default=60)  # number of years
-    min_relevant_exp = models.IntegerField(default=0)  # number of years
-    max_notice = models.IntegerField(default=60)  # number of days
+    max_exp = models.IntegerField(default=60)  # number of years # number of years
+    min_notice_period = models.IntegerField(default=60)  # number of days
+    max_notice_period =  models.IntegerField(default=90)
     # role = models.CharField(max_length=512, default=None, null=True, blank=True)
     min_ctc = models.FloatField(default=0.0)  # LPA
     max_ctc = models.FloatField(default=1000.0)  # LPA
-
-    expiring_days = models.IntegerField(default=180)
+    qualification=models.CharField(max_length=100,blank=True,default=None)
+    percentage_criteria=models.CharField(max_length=100,blank=True,default=None)
     status = models.CharField(max_length=256, choices=STATUS, default=STATUS.active)
     # May have Salary breakup, facilities, any other data
     jd_extra = JSONField(default={}, blank=True, null=True)
@@ -146,4 +146,4 @@ class Job(TimeStampedModel):
 
     class Meta:
         app_label = 'clients'
-        db_table = 'api_job'
+        db_table = 'api_jobs'

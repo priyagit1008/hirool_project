@@ -29,7 +29,7 @@ from .serializers import (
 	CandidateListSerializer,
 	CandidateListSerializer,
 	CandidateUpdateSerializer,
-	CandidateDropdownListSerializer,
+	# CandidateDropdownListSerializer,
 	)
 from .services import CandidateServices
 from libs.constants import (
@@ -66,7 +66,7 @@ class CandidateViewSet(GenericViewSet):
 			'candidate_list':CandidateListSerializer,
 			'candidate_get':CandidateListSerializer,
 			'candidate_update':CandidateUpdateSerializer,
-			'candidate_dropdown':CandidateDropdownListSerializer,
+			# 'candidate_dropdown':CandidateDropdownListSerializer,
 			}
 
 	def get_serializer_class(self):
@@ -204,6 +204,30 @@ class CandidateViewSet(GenericViewSet):
 		print(str(obj))
 		print("hi")
 		return Response(obj)
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def skills_dropdown(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/skills_dropdown.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def prepared_location(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/prepared_location.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+
 
 
 

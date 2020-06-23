@@ -59,7 +59,7 @@ class ClientListSerializer(serializers.ModelSerializer):
         # write_only_fields = ('password',)
         # read_only_fields = ('id',)
 
-class ClientGetSerializer(serializers.Serializer):
+class ClientDrowpdownGetSerializer(serializers.Serializer):
     value = serializers.CharField(source='address',required=True, min_length=2)
     label = serializers.CharField(source='address',required=True, min_length=2)
     class Meta:
@@ -142,26 +142,28 @@ class JobCreateRequestSerializer(serializers.Serializer):
     job_title = serializers.CharField(required=True)
     jd_url = serializers.CharField(required=False)
     tech_skills = serializers.JSONField(required=False)
-    location = serializers.CharField(required=True)
+    job_location = serializers.CharField(required=True)
     job_type = serializers.CharField(required=True)
     min_exp = serializers.IntegerField(required=True)
     max_exp = serializers.IntegerField(required=True)
-    min_relevant_exp = serializers.IntegerField(required=True)
-    max_notice = serializers.IntegerField(required=True)
+    min_notice_period = serializers.IntegerField(required=True)
+    max_notice_period = serializers.IntegerField(required=True)
     # status = serializers.CharField(required=False)
     min_ctc = serializers.FloatField(required=False)
     max_ctc = serializers.FloatField(required=False)
 
-    expiring_on = serializers.DateTimeField(required=False)
+    qualification = serializers.CharField(required=False)
+    percentage_criteria=serializers.IntegerField(required=True)
+    status=serializers.CharField(required=True)
     jd_extra = serializers.JSONField(required=False)
 
     # password = serializers.CharField(required=True, min_length=5)
     class Meta:
         model = Job
         fields = (
-            'client_id', 'job_title', 'jd_url', 'tech_skills', 'location', 'job_type',
-            'min_exp', 'max_exp', 'min_relevant_exp', 'max_notice', 'min_ctc', 'max_ctc',
-            'expiring_days', 'jd_extra'
+            'client_id', 'job_title', 'jd_url', 'tech_skills', 'job_location', 'job_type',
+            'min_exp', 'max_exp', 'min_notice_period', 'max_notice_period', 'min_ctc', 'max_ctc',
+            'qualification','percentage_criteria','status','jd_extra'
         )
 
     def create(self, validated_data):
@@ -172,6 +174,21 @@ class JobCreateRequestSerializer(serializers.Serializer):
         job_obj.save()
         return job_obj
 
+class clientGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields= ('name','email','mobile','ceo','address') 
+
+class JobGetSerializer(serializers.ModelSerializer):
+    client=clientGetSerializer()
+    class Meta:
+        model =Job
+        fields=(
+            'client', 'job_title', 'jd_url', 'tech_skills', 'job_location', 'job_type',
+            'min_exp', 'max_exp', 'min_notice_period', 'max_notice_period', 'min_ctc', 'max_ctc',
+            'qualification','percentage_criteria','status','jd_extra'
+            )
+
 
 class JobListSerializer(serializers.ModelSerializer):
 
@@ -180,9 +197,10 @@ class JobListSerializer(serializers.ModelSerializer):
         # Tuple of serialized model fields (see link [2])
         # fields = ( "id", "username", "password", )
         fields = (
-            'id', 'client_id', 'job_title', 'jd_url', 'tech_skills', 'location', 'job_type',
-            'min_exp', 'max_exp', 'min_relevant_exp', 'max_notice', 'min_ctc', 'max_ctc',
-            'expiring_days', 'jd_extra'
+          'id','client_id', 'job_title', 'jd_url', 'tech_skills', 'job_location', 'job_type',
+            'min_exp', 'max_exp', 'min_notice_period', 'max_notice_period', 'min_ctc', 'max_ctc',
+            'qualification','percentage_criteria','status','jd_extra'
+       
         )
         # write_only_fields = ('password',)
         # fields='__all__'

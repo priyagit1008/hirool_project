@@ -54,6 +54,7 @@ THIRD_PARTY_APPS = [
     'filters',
     'rangefilter',
     'django_extensions',
+    'corsheaders',
     # 'crispy_forms',
 ]
 
@@ -109,6 +110,8 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -118,8 +121,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000",
+]
 
+X_FRAME_OPTIONS = 'ALLOWALL'
 
+# 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")

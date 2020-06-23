@@ -58,7 +58,7 @@ class UserVerifyRequestSerializer(serializers.Serializer):
 
 class UserRegSerializer(serializers.ModelSerializer):
 
-	email = serializers.EmailField(source='email',required=True)
+	email = serializers.EmailField(required=True)
 	password = serializers.CharField(required=False, min_length=5)
 	first_name = serializers.CharField(required=True, min_length=2)
 	last_name = serializers.CharField(required=True, min_length=2)
@@ -127,6 +127,15 @@ class UserListSerialize(serializers.ModelSerializer):
 			'dob','gender','address','qualification','specialization','marks','passing_year','anual_salary','work_loc',
 			'college','work_experience','skills','designation','status','joined_date','resigned_date','exit_date','reporting_to')
 
+
+class UserDrowpdownGetSerializer(serializers.Serializer):
+	value = serializers.CharField(source='reporting_to',required=True, min_length=2)
+	label = serializers.CharField(source='reporting_to',required=True, min_length=2)
+	class Meta:
+		model = User
+		fields = ('id','value','label')
+
+
 class UserGetallSerializer(serializers.ModelSerializer):
 	
 	class Meta:
@@ -147,8 +156,6 @@ class UserGetSerializer(serializers.Serializer):
 		# fields = ('id','getuser','value','label')
 		
 		fields = '__all__'
-
-
 
 
 

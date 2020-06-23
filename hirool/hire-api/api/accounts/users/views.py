@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
+
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from .permissions import HiroolReadOnly
@@ -18,6 +19,10 @@ from django.conf import settings
 
 # app level imports
 from .models import User, Actions, Permissions, UserPermissions,UserRole
+from clients.models import Client,Job
+from candidate.models import Candidate
+from interview.models import  Interview
+
 # from templates 
 
 from .serializers import (
@@ -27,6 +32,7 @@ from .serializers import (
 	UserGetSerializer,
 	UserUpdateRequestSerializer,
 	UserPassUpdateSerializer,
+	UserDrowpdownGetSerializer,
 
 	UserRoleCreateRequestSerializer,
 	UserRoleListSerializer,
@@ -86,8 +92,8 @@ class UserViewSet(GenericViewSet):
 		'exec_update': UserUpdateRequestSerializer,
 		'forgotpass': UserPassUpdateSerializer,
 		'update_pass': UserPassUpdateSerializer,
-		'user_profile':UserListSerialize,
-	}
+		'user_profile':UserListSerialize, 
+		'user_dropdown':UserDrowpdownGetSerializer  }
 
 	def get_serializer_class(self):
 		"""
@@ -123,6 +129,8 @@ class UserViewSet(GenericViewSet):
 		Return user login
 		"""
 		serializer = self.get_serializer(data=request.data)
+		print(request.data)
+		print(request)
 
 		if serializer.is_valid() is False:
 			raise ParseException(BAD_REQUEST, serializer.errors)
@@ -130,12 +138,13 @@ class UserViewSet(GenericViewSet):
 		user = authenticate(
 			email=serializer.validated_data["email"],
 			password=serializer.validated_data["password"])
-
+		# print(serializer.validated_data)
 		if not user:
 			return Response({'error': 'Invalid Credentials'},
 							status=status.HTTP_404_NOT_FOUND)
 		token = user.access_token
-		return Response({'token': token},
+		name= user.first_name
+		return Response({'token': token,"name":name},
 						status=status.HTTP_200_OK)
 
 	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ])
@@ -162,6 +171,40 @@ class UserViewSet(GenericViewSet):
 			return Response(serializer.data, status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	
+    
+    
+	@action(
+		methods=['get'],
+		detail=False,
+		# url_path='image-upload',
+		# permission_classes=[IsAuthenticated, ],
+	)
+	def user_dropdown(self, request, **dict):
+		"""
+		Return user list data and groups
+		"""
+		try:
+			filter_data = request.query_params.dict()
+			serializer = self.get_serializer(self.services.get_queryset(filter_data), many=True)
+			return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+	
+
+	def dashboard(self, request, **dict):
+		"""
+		Return user list data and groups
+		"""
+		try:
+			# filter_data = request.query_params.dict()
+			serializer = self.get_serializer(self.services.get_queryset(filter_data), many=True)
+			return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
 
 
 
@@ -223,8 +266,8 @@ class UserViewSet(GenericViewSet):
 
 			serializer = self.get_serializer(self.services.get_user(id))
 			# data = {
-			# 	"user": serializer.data,
-			# 	"user1": UserListSerializer(self.services.get_user(id)).data
+			#   "user": serializer.data,
+			#   "user1": UserListSerializer(self.services.get_user(id)).data
 			# }
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
@@ -350,6 +393,41 @@ class UserViewSet(GenericViewSet):
 		print(str(obj))
 		return Response(obj)
 
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def user_designation(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/user_designation.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		return Response(obj)
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def user_columns(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/user_columns.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		return Response(obj)
+	
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def skills_dropdown(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/skills_dropdown.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+
+
 	
 	@action(
 		methods=['get'],
@@ -359,12 +437,36 @@ class UserViewSet(GenericViewSet):
 		"""
 		Return total users data
 		"""
-		user_count = User.objects.count()
-		active_user=User.objects.filter(is_active=True).count()
-		closed_user=User.objects.filter(is_active=False).count()
+		user={
+			"user_count":User.objects.count(),
+			"active_user":User.objects.filter(is_active=True).count(),
+			"closed_user":User.objects.filter(is_active=False).count()
+			}
 
-		return Response({"total_users": user_count,"active_user":active_user,"closed_user":closed_user}, status.HTTP_200_OK)
-	
+		interview={
+			"interview_count ":Interview.objects.count(),
+			"active_interview":Interview.objects.filter(is_active=True).count(),
+			"closed_interview":Interview.objects.filter(is_active=False).count()
+			}
+		client={
+			"client_count":Client.objects.count(),
+			"active_Client":Client.objects.filter(is_active=True).count(),
+			"closed_Client":Client.objects.filter(is_active=False).count()
+			}
+		job={
+			"job_count":Job.objects.count(),
+			"active_job":Job.objects.filter(is_active=True).count(),
+			"closed_job":Job.objects.filter(is_active=False).count()}
+
+		candidate={
+			"candidate_count":Candidate.objects.count(),
+			"active_candidate":Candidate.objects.filter(is_active=True).count(),
+			"closed_candidate":Candidate.objects.filter(is_active=False).count()}
+
+
+		return Response({"user": user,"interview":interview,"client":client,"jobs":job,"candidates":candidate},status.HTTP_200_OK)
+
+				   
 
 class UserRoleViewSet(GenericViewSet):
 	"""

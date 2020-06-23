@@ -20,7 +20,7 @@ class InterviewCreateRequestSerializer(serializers.Serializer):
 	job=serializers.PrimaryKeyRelatedField(queryset=Job.objects.all(),required=False)
 	interview_round=serializers.PrimaryKeyRelatedField(queryset=InterviewRound.objects.all(),required=False)
 	candidate=serializers.PrimaryKeyRelatedField(queryset=Candidate.objects.all(),required=False)
-	member=serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False)
+	user=serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False)
 	interview_status=serializers.PrimaryKeyRelatedField(queryset=InterviewStatus.objects.all(),required=False)
 
 
@@ -29,7 +29,7 @@ class InterviewCreateRequestSerializer(serializers.Serializer):
 	# password = serializers.CharField(required=True, min_length=5)
 	class Meta:
 		model = Interview
-		fields = ('id','client', 'job', 'interview_round', 'candidate', 'member',
+		fields = ('id','client', 'job', 'interview_round', 'candidate', 'user',
 			'date', 'location', 'interview_status'
 		)
 
@@ -56,15 +56,25 @@ class JobGetSerializer(serializers.ModelSerializer):
 class CandidateGetSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Candidate
-		fields= ('name','email','mobile') 
+		fields= ('first_name','last_name','email','mobile') 
 
-class MemberGetSerializer(serializers.ModelSerializer):
+class UserGetSerializer(serializers.ModelSerializer):
 
 	class Meta:
 
 		model = User
 		fields= ('id','first_name','last_name')
-		
+
+class InterviewRoundGetSerializer(serializers.ModelSerializer):
+	class Meta:
+		model= InterviewRound
+		fields= ('id','interview_round')
+
+class InterviewStatusGetSerializer(serializers.ModelSerializer):
+	class Meta:
+		model= InterviewStatus
+		fields= ('id','status')
+
 		
 
 class InterviewGetSerializer(serializers.ModelSerializer):
@@ -72,15 +82,17 @@ class InterviewGetSerializer(serializers.ModelSerializer):
 	client = ClientGetSerializer()
 	job = JobGetSerializer()
 	candidate = CandidateGetSerializer()
-	member = MemberGetSerializer()
+	user = UserGetSerializer()
+	interview_round=InterviewRoundGetSerializer()
+	interview_status=InterviewStatusGetSerializer()
 
 	class Meta:
 		model = Interview
 		
 		fields = (
 
-			'id','client','job','member','candidate',
-			'interview_round','date','location','interview_status'
+			'id','client','job','user','candidate',
+			'interview_round','interview_status','date','location'
 		)
 		# write_only_fields = ('password',)
 		# read_only_fields = ('id',)
@@ -88,20 +100,20 @@ class InterviewGetSerializer(serializers.ModelSerializer):
 
 class InterviewListSerializer(serializers.ModelSerializer):
 
-	client = ClientGetSerializer(many=True)
-	job = JobGetSerializer(many=True)
-	candidate = CandidateGetSerializer(many=True)
-	member = MemberGetSerializer(many=True)
+	# client = ClientGetSerializer(many=True)
+	# job = JobGetSerializer(many=True)
+	# candidate = CandidateGetSerializer(many=True)
+	# member = MemberGetSerializer(many=True)
 
 
 	class Meta:
 		model = Interview
-		# fields = '__all__'
-		fields = (
+		fields = '__all__'
+		# fields = (
 
-			'id','client','job','member','candidate',
-			'interview_round','date','location','interview_status'
-		)
+		# 	'id','client','job','user','candidate',
+		# 	'interview_round','date','location','interview_status'
+		# )
 		# fields = (
 		# 	'id','client', 'job', 'interview_round', 'candidate', 'member','location', 'interview_status'
 		# )
@@ -134,6 +146,7 @@ class InterviewUpdateSerilaizer(serializers.ModelSerializer):
 	class Meta:
 		model = Interview
 		fields = ('id','date','location','interview_round','interview_status')
+
 		
 		
 
@@ -160,6 +173,15 @@ class InterviewRoundListSerializer(serializers.ModelSerializer):
 	class Meta:
 		model= InterviewRound
 		fields= '__all__'
+
+
+class InterviewRoundDrowpdownGetSerializer(serializers.Serializer):
+    value = serializers.CharField(source='interview_round',required=True, min_length=2)
+    label = serializers.CharField(source='interview_round',required=True, min_length=2)
+    class Meta:
+        model = InterviewRound
+        fields = ('id','value','label')
+        
 
 
 ############################################################################

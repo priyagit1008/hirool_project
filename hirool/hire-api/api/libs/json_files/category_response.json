@@ -1,19 +1,13 @@
+
 [
 {
 "id":1,
-"value": "finance",
-"label": "Finance"
-
+"value": "public",
+"label": "PUBLIC"
 },
     {
     "id":2,
-  "value": "healthcare",
-"label": "Healthcare"
-    },
-    {
-    "id":3,
-      "value": "technology",
-    "label": "Technology"
+"value": "private",
+"label": "PRIVATE"
     }
 ]
-

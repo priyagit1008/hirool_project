@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.users.permissions import HiroolReadOnly, HiroolReadWrite
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
+import json 
 
 # project level imports
 from libs.constants import (
@@ -34,6 +35,7 @@ from .serializers import (
 	InterviewListSerializer,
 	InterviewUpdateSerilaizer,
 	InterviewRoundRequestSerializer,
+	InterviewRoundDrowpdownGetSerializer,
 	InterviewRoundListSerializer,
 	InterviewStatusRequestSerializer,
 	InterviewStatusListSerializer
@@ -62,10 +64,9 @@ class InterviewViewSet(GenericViewSet):
 	serializers_dict = {
 		'interview_add': InterviewCreateRequestSerializer,
 		'interview_get': InterviewGetSerializer,
-		'interview_list': InterviewGetSerializer,
+		'interview_list': InterviewListSerializer,
 		'interview_update': InterviewUpdateSerilaizer,
-		'delete_interview': InterviewListSerializer
-		,
+		'delete_interview': InterviewListSerializer,
 	}
 
 	def get_serializer_class(self):
@@ -76,7 +77,7 @@ class InterviewViewSet(GenericViewSet):
 		except KeyError as key:
 			raise ParseException(BAD_ACTION, errors=key)
 
-	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, HiroolReadWrite], )
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,], )
 
 	def interview_add(self, request):
 
@@ -87,8 +88,8 @@ class InterviewViewSet(GenericViewSet):
 		interview = serializer.create(serializer.validated_data)
 
 		if interview:
-			msg_plain = render_to_string('interview_email_message.txt', {"name":interview.candidate.name,"date": interview.date,"location":interview.location})
-			msg_html = render_to_string('interview_email.html',{"name":interview.candidate.name,"date": interview.date,"location":interview.location})
+			msg_plain = render_to_string('interview_email_message.txt', {"name":interview.candidate.first_name,"date": interview.date,"location":interview.location})
+			msg_html = render_to_string('interview_email.html',{"name":interview.candidate.first_name,"date": interview.date,"location":interview.location})
 			send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [interview.candidate.email],html_message=msg_html, )
 			return Response(serializer.data,status.HTTP_201_CREATED)
 
@@ -119,6 +120,8 @@ class InterviewViewSet(GenericViewSet):
 		except Exception as e:
 			raise
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
 
 
 	@action(methods=['put'], detail=False, permission_classes=[IsAuthenticated, HiroolReadWrite], )
@@ -172,16 +175,40 @@ class InterviewViewSet(GenericViewSet):
 		interview_obj.delete()
 		return Response({"status":"interview is deleted "}, status.HTTP_200_OK)
 
-	@action(methods=['get'],detail=False,permission_classes=[],)
-	def interview_dashboard(self,request):
-		"""
-		Returns total number of jds
-		"""
-		interview_count = Interview.objects.count()
-		active_interview=Interview.objects.filter(is_active=True).count()
-		closed_interview=Interview.objects.filter(is_active=False).count()
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def interview_columns(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/interview_columns.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
 
-		return Response({"total_interview": interview_count,"active_interview":active_interview,"closed_interview":closed_interview}, status.HTTP_200_OK)
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def interview_status(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/interview_status.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+	@action(methods=['get', 'patch'],detail=False,
+		permission_classes=[IsAuthenticated,],
+		)
+	def interview_round(self, request):
+		myfile= open('/home/shivaraj/Hirool-Project/back-end/hire-api/api/libs/json_files/interview_round.json','r')
+		jsondata = myfile.read()
+		obj = json.loads(jsondata)
+		print(str(obj))
+		print("hi")
+		return Response(obj)
+
+
 
 
 
@@ -193,7 +220,7 @@ class InterviewRoundViewSet(GenericViewSet):
 
 	services = InterviewRound_Services()
 
-	queryset = services.get_queryset()
+	# queryset = services.get_queryset()
 
 	filter_backends = (filters.OrderingFilter,)
 	authentication_classes = (TokenAuthentication,)
@@ -206,7 +233,9 @@ class InterviewRoundViewSet(GenericViewSet):
 	serializers_dict = {
 		'add_round': InterviewRoundRequestSerializer,
 		'round_get': InterviewRoundListSerializer,
-		'round_list': InterviewRoundListSerializer,
+		# 'round_list': InterviewRoundListSerializer,
+		'inetrviewround_dropdown':InterviewRoundDrowpdownGetSerializer,
+
 	}
 
 	def get_serializer_class(self):
@@ -225,11 +254,12 @@ class InterviewRoundViewSet(GenericViewSet):
 		if serializer.is_valid() is False:
 			raise ParseException(BAD_REQUEST, serializer.errors)
 
-			interview = serializer.create(serializer.validated_data)
+		interview = serializer.create(serializer.validated_data)
 		if interview:
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+
 
 
 	@action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )
@@ -247,10 +277,25 @@ class InterviewRoundViewSet(GenericViewSet):
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
-	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
-	def round_list(self, request):
-		data = self.get_serializer(self.queryset, many=True).data
-		return Response(data, status.HTTP_200_OK)
+
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,], )
+	def inetrviewround_dropdown(self, request, **dict):
+		try:
+			filter_data = request.query_params.dict()
+			serializer = self.get_serializer(self.services.interviewround_filter_service(filter_data), many=True)
+			return Response(serializer.data, status.HTTP_200_OK)
+		except Exception as e:
+			raise
+			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+
+
+	
+
+
+	# @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
+	# def round_list(self, request):
+	# 	data = self.get_serializer(self.queryset, many=True).data
+	# 	return Response(data, status.HTTP_200_OK)
 
 
 class InterviewStatusViewSet(GenericViewSet):
@@ -286,10 +331,10 @@ class InterviewStatusViewSet(GenericViewSet):
 		serializer = self.get_serializer(data=request.data)
 		if serializer.is_valid() is False:
 			raise ParseException(BAD_REQUEST, serializer.errors)
-			interview = serializer.create(serializer.validated_data)
-			if interview:
+		interview = serializer.create(serializer.validated_data)
+		if interview:
 				return Response(serializer.data, status=status.HTTP_201_CREATED)
-			return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
 
 
 	@action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated, ], )

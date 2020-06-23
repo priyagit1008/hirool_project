@@ -63,12 +63,12 @@ class CandidateListSerializer(serializers.ModelSerializer):
 
 		fields= '__all__'  
 
-class CandidateDropdownListSerializer(serializers.ModelSerializer):
-	"""
-	"""
-	class Meta:
-		model=Candidate
-		fields = ('id','name')
+# class CandidateDropdownListSerializer(serializers.ModelSerializer):
+# 	"""
+# 	"""
+# 	class Meta:
+# 		model=Candidate
+# 		fields = ('id','name')
 
 
 

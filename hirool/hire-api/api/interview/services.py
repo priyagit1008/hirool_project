@@ -21,8 +21,8 @@ class InterviewServices:
 		
 class InterviewRound_Services:
 
-	def get_queryset(self):
-		return InterviewRound.objects.all()
+	def interviewround_filter_service(self,filter_data):
+		return Interview.objects.filter(**filter_data).values()
 
 	def get_Round_service(self,id):
 		return InterviewRound.objects.get(id=id)

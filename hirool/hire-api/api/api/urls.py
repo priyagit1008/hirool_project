@@ -65,13 +65,14 @@ router.register(r'interviewsstatus',interview_view.InterviewStatusViewSet,base_n
 
 
 
+from django.conf.urls.static import static
 
 # urlpatterns
 urlpatterns = [
     path('api/v1/', include((router.urls, 'api'), namespace='v1')),
     path('HS456GAG4FAYJSTT0O/hire-admin/', admin.site.urls),
     # path('permissions/',permissions.custom_permission,name='perm'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.ENV != "PROD":
     urlpatterns += [re_path(r'^docs/A92DFFBB6B9EC/', include_docs_urls(title="Leads API"))]

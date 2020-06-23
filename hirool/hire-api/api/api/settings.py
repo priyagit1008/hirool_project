@@ -12,7 +12,7 @@ if DATADOG_ENABLED:
 
 # Database Config
 # DATABASES["default"]["ENGINE"] = os.getenv("django.db.backends.postgresql_psycopg2")
-DATABASES["default"]["NAME"] = os.getenv("HIRE_API_DATABASE_NAME", "hire_db1")
+DATABASES["default"]["NAME"] = os.getenv("HIRE_API_DATABASE_NAME", "hire_db")
 DATABASES["default"]["USER"] = os.getenv("HIRE_API_DATABASE_USER", "hire_user1")
 DATABASES["default"]["PASSWORD"] = os.getenv("HIRE_API_DATABASE_PASSWORD", "hire@123")
 DATABASES["default"]["HOST"] = os.getenv("HIRE_API_DATABASE_HOST", "127.0.0.1")

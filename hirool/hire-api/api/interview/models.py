@@ -58,7 +58,7 @@ class Interview(TimeStampedModel):
 		related_name='Candidates',
 		blank=True,null=True,default=None)
 
-	member= models.ForeignKey(User,on_delete=models.PROTECT,
+	user= models.ForeignKey(User,on_delete=models.PROTECT,
 		related_name='accounts',
 		blank=True,null=True,default=None)
 
