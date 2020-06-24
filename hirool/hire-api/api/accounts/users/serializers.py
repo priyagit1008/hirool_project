@@ -61,16 +61,16 @@ class UserRegSerializer(serializers.ModelSerializer):
 	email = serializers.EmailField(required=True)
 	password = serializers.CharField(required=False, min_length=5)
 	first_name = serializers.CharField(required=True, min_length=2)
-	last_name = serializers.CharField(required=True, min_length=2)
+	last_name = serializers.CharField(required=False, min_length=2)
 	mobile = serializers.IntegerField(
 		required=True,
 		min_value=5000000000,
 		max_value=9999999999
 	)
-	dob=serializers.DateTimeField(required=False)
+	dob=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
 	gender=serializers.CharField(required=False)
 	address=serializers.CharField(required=False,)
-	qualification=serializers.CharField(required=False)
+	qualification=serializers.CharField(required=True)
 	specialization=serializers.CharField(required=False)
 	marks=serializers.CharField(required=False)
 	passing_year=serializers.CharField(required=False)
@@ -83,9 +83,9 @@ class UserRegSerializer(serializers.ModelSerializer):
 	status=serializers.CharField(required=False)
 	profile_pic=serializers.ImageField(required=False)
 
-	joined_date=serializers.DateTimeField(required=False)
-	resigned_date=serializers.DateTimeField(required=False)
-	exit_date=serializers.DateTimeField(required=False)
+	joined_date=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
+	resigned_date=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
+	exit_date=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
 	reporting_to=serializers.CharField(required=False)
 
 	

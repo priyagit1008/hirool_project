@@ -113,14 +113,14 @@ class UserViewSet(GenericViewSet):
 		serializer = self.get_serializer(data=request.data)
 		if serializer.is_valid() is False:
 			print(serializer.errors)
-			raise ParseException(BAD_REQUEST, serializer.errors)
+			raise ParseException({'status':'Incorrect Input'}, serializer.errors)
 		user = serializer.create(serializer.validated_data)
 		if user:
-				msg_plain = render_to_string('email_message.txt', {"user": user.first_name})
-				msg_html = render_to_string('email.html', {"user": user.first_name})
-				send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [user.email], html_message=msg_html)
-				return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+				# msg_plain = render_to_string('email_message.txt', {"user": user.first_name})
+				# msg_html = render_to_string('email.html', {"user": user.first_name})
+				# send_mail('Hirool', msg_plain, settings.EMAIL_HOST_USER, [user.email], html_message=msg_html)
+				return Response({'status':'Successfully added'}, status=status.HTTP_201_CREATED)
+		return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 		
 
 	@action(methods=['post'], detail=False, permission_classes=[])
@@ -140,11 +140,12 @@ class UserViewSet(GenericViewSet):
 			password=serializer.validated_data["password"])
 		# print(serializer.validated_data)
 		if not user:
-			return Response({'error': 'Invalid Credentials'},
+			return Response({'status': 'Invalid Credentials'},
 							status=status.HTTP_404_NOT_FOUND)
 		token = user.access_token
 		name= user.first_name
-		return Response({'token': token,"name":name},
+		id=user.id
+		return Response({'token': token,"name":name,'user_id':id},
 						status=status.HTTP_200_OK)
 
 	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ])

@@ -50,6 +50,7 @@ router.register(r'jd', client_view.JobViewSet, base_name='jd')
 # register candidate app urls with router
 router.register(r'candidate',candidate_view.CandidateViewSet,base_name='candidate')
 
+# register interview app urls with router
 
 router.register(r'interviews',interview_view.InterviewViewSet,base_name='interviews')
 

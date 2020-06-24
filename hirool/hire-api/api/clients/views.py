@@ -35,6 +35,7 @@ from .serializers import (
 	ClientDrowpdownGetSerializer,
 	ClientcategoryRequestSerializer,
 	ClientcategoryListSerializer,
+	ClientGetSerializer,
 	# ClientGetSerializer,
 	JobCreateRequestSerializer,
 	JobListSerializer,
@@ -70,7 +71,7 @@ class ClientViewSet(GenericViewSet):
 		'org_list': ClientListSerializer,
 		'org_dropdown_list':ClientDrowpdownGetSerializer,
 		'org_update': ClientUpdateSerializer,
-		'org_get':ClientListSerializer,
+		'org_get':ClientGetSerializer,
 		# 'org_dropdown':ClientGetSerializer,
 
 	}
@@ -93,15 +94,15 @@ class ClientViewSet(GenericViewSet):
 		"""
 		serializer = self.get_serializer(data=request.data)
 		if serializer.is_valid() is False:
-			raise ParseException(BAD_REQUEST, serializer.errors)
+			raise ParseException({'status':'Incorrect input'}, serializer.errors)
 
 		print("create client with", serializer.validated_data)
 
 		client = serializer.create(serializer.validated_data)
 		if client:
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
+			return Response({'status':'Successfully added'}, status=status.HTTP_201_CREATED)
 
-		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND)
+		return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
 	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ],)
@@ -153,20 +154,6 @@ class ClientViewSet(GenericViewSet):
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
-
-
-	@action(methods=['get'],detail=False,permission_classes=[],)
-	def client_dashboard(self,request):
-		"""
-		Returns total clients
-		"""
-		client_count = Client.objects.count()
-		active_Client=Client.objects.filter(is_active=True).count()
-		closed_Client=Client.objects.filter(is_active=False).count()
-
-		return Response({"total_clients": client_count,"active_clients":active_Client,"closed_Client":closed_Client}, status.HTTP_200_OK)
-
-
 	@action(methods=['get','put'], detail=False, permission_classes=[IsAuthenticated, ],)
 	def org_update(self,request):
 		"""
@@ -195,7 +182,7 @@ class ClientViewSet(GenericViewSet):
 		"""
 		Return client singal data and groups
 		"""
-		print(request)
+		# print(request)
 		try:
 			id=request.GET["id"]
 			serializer=self.get_serializer(self.services.get_client_service(id))
@@ -203,9 +190,7 @@ class ClientViewSet(GenericViewSet):
 			return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
-	
-	# s
+			
 
 
 	@action(methods=['get', 'patch'],detail=False,
@@ -477,7 +462,7 @@ class JobViewSet(GenericViewSet):
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
 
-	@action(methods=['get','put'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite ],)
+	@action(methods=['get','put'], detail=False, permission_classes=[IsAuthenticated,],)
 	def job_update(self,request):
 		"""
 		Returns jd edit
@@ -487,11 +472,13 @@ class JobViewSet(GenericViewSet):
 			id=data["id"]
 			serializer=self.get_serializer(self.services.update_job_service(id),data=request.data)
 			if not serializer.is_valid():
+				print(serializer.errors)
 				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
 				serializer.save()
 				return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
+			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
 

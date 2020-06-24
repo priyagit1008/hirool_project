@@ -103,17 +103,20 @@ class InterviewListSerializer(serializers.ModelSerializer):
 	# client = ClientGetSerializer(many=True)
 	# job = JobGetSerializer(many=True)
 	# candidate = CandidateGetSerializer(many=True)
-	# member = MemberGetSerializer(many=True)
-
+	# user = UserGetSerializer(many=True)
+	# interview_round=InterviewRoundGetSerializer(many=True)
+	# interview_status=InterviewStatusGetSerializer(many=True)
 
 	class Meta:
 		model = Interview
-		fields = '__all__'
+		
+		
 		# fields = (
 
 		# 	'id','client','job','user','candidate',
-		# 	'interview_round','date','location','interview_status'
+		# 	'interview_round','interview_status','date','location'
 		# )
+		fields = '__all__'
 		# fields = (
 		# 	'id','client', 'job', 'interview_round', 'candidate', 'member','location', 'interview_status'
 		# )

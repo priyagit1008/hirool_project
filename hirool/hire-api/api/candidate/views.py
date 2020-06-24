@@ -87,19 +87,19 @@ class CandidateViewSet(GenericViewSet):
 		if not serializer.is_valid():
 			print(serializer.errors)
 
-			raise ParseException(BAD_REQUEST, serializer.errors)
+			raise ParseException({'status':'Incorrect Input'}, serializer.errors)
 
 		print("create candidate with", serializer.validated_data)
 		candidate= serializer.create(serializer.validated_data)
 
 		if candidate:
 
-			msg_plain = render_to_string('email_message.txt',{"user":candidate.first_name})
-			msg_html = render_to_string('email.html',{"user":candidate.first_name})
-			send_mail('Hirool',msg_plain,settings.EMAIL_HOST_USER,[candidate.email],html_message=msg_html,)
+			# msg_plain = render_to_string('email_message.txt',{"user":candidate.first_name})
+			# msg_html = render_to_string('email.html',{"user":candidate.first_name})
+			# send_mail('Hirool',msg_plain,settings.EMAIL_HOST_USER,[candidate.email],html_message=msg_html,)
 
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response({"status": "error"}, status.HTTP_404_NOT_FOUND) 
+			return Response({'status':'Successfully added'},status=status.HTTP_201_CREATED)
+		return Response({"status": "Not Found"},status.HTTP_404_NOT_FOUND) 
 
 
 		
@@ -136,7 +136,7 @@ class CandidateViewSet(GenericViewSet):
 
 
 
-	@action(methods=['get','put'],detail=False,permission_classes=[IsAuthenticated,HiroolReadWrite],)
+	@action(methods=['get','put'],detail=False,permission_classes=[IsAuthenticated,],)
 	def candidate_update(self,request):
 		"""
 		update candidate details
@@ -151,6 +151,7 @@ class CandidateViewSet(GenericViewSet):
 				serializer.save()
 				return Response(serializer.data,status.HTTP_200_OK)
 		except Exception as e:
+			raise
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
@@ -227,24 +228,6 @@ class CandidateViewSet(GenericViewSet):
 		print("hi")
 		return Response(obj)
 
-
-
-
-
-
-	@action(
-		methods=['get'],
-		detail=False,permission_classes=[],
-	)
-	def candidate_dashboard(self,request):
-		"""
-		Returns total candidate details
-		"""
-		candidate_count = Candidate.objects.count()
-		active_candidate=Candidate.objects.filter(is_active=True).count()
-		closed_candidate=Candidate.objects.filter(is_active=False).count()
-
-		return Response({"total_candidates": candidate_count,"active_candidates":active_candidate,"closed_candidate":closed_candidate}, status.HTTP_200_OK)
 	
 	@action(
 		methods=['get'],

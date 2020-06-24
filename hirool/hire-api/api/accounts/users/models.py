@@ -77,8 +77,8 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 	)
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-	first_name= models.CharField(max_length=64, blank=True,default=None)
-	last_name =models.CharField(max_length=64, blank=True,default=None)
+	first_name= models.CharField(max_length=64, blank=False,default=None)
+	last_name =models.CharField(max_length=64, blank=True,null = True,default=None)
 	email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False,default=None)
 	mobile =models.BigIntegerField(
 		validators=[
@@ -86,26 +86,26 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 			MaxValueValidator(9999999999),
 		],
 		unique=True,
-		db_index=True,default=None)
-	dob= models.DateTimeField(null=True)
-	gender=models.CharField(choices=GENDER, max_length=1, blank=False, default=GENDER.M)
-	address=models.CharField(max_length=64, blank=True,default=None)
-	qualification=models.CharField(max_length=64, blank=True,default=None)
-	specialization=models.CharField(max_length=64, blank=True,default=None)
-	marks=models.CharField(max_length=64, blank=True,default=None)
-	passing_year=models.CharField(max_length=64, blank=True,default=None)
-	college=models.CharField(max_length=64, blank=True,default=None)
-	work_experience=models.CharField(max_length=64, blank=True)
+		db_index=True,default=None,blank=False)
+	dob= models.DateField(null=True,blank=True)
+	gender=models.CharField(choices=GENDER, max_length=1,null = True, blank=True, default=GENDER.M)
+	address=models.CharField(max_length=64, blank=True,null = True,default=None)
+	qualification=models.CharField(max_length=64, blank=False,default=None)
+	specialization=models.CharField(max_length=64,null = True, blank=True,default=None)
+	marks=models.CharField(max_length=64, blank=True,null = True,default=None)
+	passing_year=models.CharField(max_length=64, blank=True,null = True,default=None)
+	college=models.CharField(max_length=64, blank=True,null = True,default=None)
+	work_experience=models.CharField(max_length=64,null = True, blank=True)
 	skills=JSONField(default={}, blank=True, null=True)
-	designation=models.CharField(max_length=64, blank=True)
-	anual_salary=models.CharField(max_length=64, blank=True)
-	work_loc=models.CharField(max_length=64, blank=True)
-	status= models.CharField(max_length=64, choices=STATUS, default=STATUS.active)
+	designation=models.CharField(max_length=64,null = True, blank=True)
+	anual_salary=models.CharField(max_length=64,null = True, blank=True)
+	work_loc=models.CharField(max_length=64,null = True, blank=True)
+	status= models.CharField(max_length=64, choices=STATUS,blank=True, default=STATUS.active)
 
-	profile_pic= models.ImageField(max_length=255, blank=False)
-	joined_date= models.DateTimeField(null=True)
-	resigned_date= models.DateTimeField(null=True)
-	exit_date= models.DateTimeField(null=True)
+	profile_pic= models.ImageField(max_length=255, blank=True)
+	joined_date= models.DateField(null=True,blank=True)
+	resigned_date= models.DateField(null=True,blank=True)
+	exit_date= models.DateField(null=True,blank=True)
 	reporting_to=models.CharField(max_length=64, blank=True)
 
 
