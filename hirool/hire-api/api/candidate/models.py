@@ -40,8 +40,8 @@ class Candidate(TimeStampedModel):
 		('O', 'Other'),
 	)
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	first_name=models.CharField(max_length=512,blank=False)
-	last_name=models.CharField(max_length=512,blank=True)
+	first_name=models.CharField(max_length=512,null= True,blank=False)
+	last_name=models.CharField(max_length=512,null= True,blank=True)
 	email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False)
 	candidate_url = models.CharField(max_length=1024, default=None,	null = True, blank=True)
 	mobile = models.BigIntegerField(

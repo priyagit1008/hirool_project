@@ -52,19 +52,15 @@ class ClientListSerializer(serializers.ModelSerializer):
         model = Client
         # Tuple of serialized model fields (see link [2])
         fields = '__all__'
-        # fields = (
-        #     'id', 'name', 'web_link', 'headquarter', 'address', 'category',
-        #     'business_type', 'status', 'profile_desc'
-        # )
-        # write_only_fields = ('password',)
-        # read_only_fields = ('id',)
+       
 
 class ClientDrowpdownGetSerializer(serializers.Serializer):
-    value = serializers.CharField(source='address',required=True, min_length=2)
-    label = serializers.CharField(source='address',required=True, min_length=2)
+    value = serializers.CharField(source='name',required=True, min_length=2)
+    label = serializers.CharField(source='name',required=True, min_length=2)
+    client_id =serializers.CharField(source='id',required=True,min_length=2)
     class Meta:
         model = Client
-        fields = ('id','value','label')
+        fields = ('client_id','value','label')
         
 
 
@@ -90,23 +86,8 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
     
 
     def update(self, instance, validated_data):
-        # instance.id =  validated_data.get('id', instance.id)
-        # instance.name =  validated_data.get('name', instance.name)
-        # instance.web_link = validated_data.get('web_link', instance.web_link)
-        # instance.ceo = validated_data.get('ceo', instance.ceo)
-        # instance.founder = validated_data.get('founder', instance.founder)
-        # instance.founded_on = validated_data.get('founded_on', instance.founded_on)
-        # instance.email = validated_data.get('email', instance.email)
-        # instance.mobile = validated_data.get('mobile', instance.mobile)
-        # instance.revenue = validated_data.get('revenue', instance.revenue)
-        # instance.latest_funding = validated_data.get('latest_funding', instance.latest_funding)
-        # instance.headquarter = validated_data.get('headquarter', instance.headquarter)
-        # instance.address = validated_data.get('address', instance.address)
-        # instance.profile_desc = validated_data.get('profile_desc', instance.profile_desc)
-        # instance.aggrement_doc = validated_data.get('aggrement_doc', instance.aggrement_doc)
-        # instance.status = validated_data.get('status', instance.status)
-        # instance.industry = validated_data.get('industry', instance.industry)
-        # instance.category = validated_data.get('category', instance.category)
+
+
         for attr ,value in validated_data.items():
             setattr(instance,attr,value)
         instance.save()
@@ -114,14 +95,11 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
+
         fields = '__all__'
-        # fields = ('id','name','web_link','address')
 
-    # def update(self):
-    #     data = self.validated_data
-    #     print(data)
 
-    #     fields=('id','name','web_link','address')
+ 
 class ClientindustryRequestSerializer(serializers.Serializer):
     """
     ClientCreateRequestSerializer
@@ -242,22 +220,21 @@ class JobListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         # Tuple of serialized model fields (see link [2])
-        # fields = ( "id", "username", "password", )
+
         fields = (
           'id','client_id', 'job_title', 'jd_url', 'tech_skills', 'job_location', 'job_type',
             'min_exp', 'max_exp', 'min_notice_period', 'max_notice_period', 'min_ctc', 'max_ctc',
             'qualification','percentage_criteria','status','jd_extra'
        
         )
-        # write_only_fields = ('password',)
-        # fields='__all__'
+   
         read_only_fields = ('id',)
 
 class JobUpdateSerilaizer(serializers.ModelSerializer):
     """docstring for JobUpdateSerilaizer"""
     id = serializers.CharField(required=True)
 
-    client_id = serializers.CharField(required=False)
+    client= serializers.CharField(required=False)
     job_title = serializers.CharField(required=True)
     jd_url = serializers.CharField(required=False)
     tech_skills = serializers.JSONField(required=False)
@@ -267,7 +244,7 @@ class JobUpdateSerilaizer(serializers.ModelSerializer):
     max_exp = serializers.IntegerField(required=False)
     min_notice_period = serializers.IntegerField(required=False)
     max_notice_period = serializers.IntegerField(required=False)
-    # status = serializers.CharField(required=False)
+    status = serializers.CharField(required=False)
     min_ctc = serializers.FloatField(required=False)
     max_ctc = serializers.FloatField(required=False)
 
@@ -275,31 +252,19 @@ class JobUpdateSerilaizer(serializers.ModelSerializer):
     percentage_criteria=serializers.IntegerField(required=False)
     status=serializers.CharField(required=False)
     jd_extra = serializers.JSONField(required=False)
-    # expiring_on = serializers.DateTimeField(required=False)
+
 
     def update(self, instance, validated_data):
-        # instance.job_title =  validated_data.get('job_title', instance.job_title)
-        # instance.jd_url =  validated_data.get('jd_url', instance.jd_url)
-        # instance.tech_skills =  validated_data.get('tech_skills', instance.tech_skills)
-        # instance.min_exp =  validated_data.get('min_exp', instance.min_exp)
-        # instance.max_exp =  validated_data.get('max_exp', instance.max_exp)
+
         for attr ,value in validated_data.items():
             setattr(instance,attr,value)
-            instance.save()
-            return instance
-        # instance.save()
-        # return instance
-
-        # instance.expiring_on =  validated_data.get('expiring_on', instance.expiring_on)
+        instance.save()
+        return instance
+    
 
     class Meta:
         model = Job
-        # fields = ('job_title','jd_url','tech_skills','min_exp','max_exp')
-        # fields = (
-        #     'id', 'client_id', 'job_title', 'jd_url', 'tech_skills', 'location', 'job_type',
-        #     'min_exp', 'max_exp', 'min_relevant_exp', 'max_notice', 'min_ctc', 'max_ctc',
-        #     'expiring_days', 'jd_extra'
-        # )
+    
         fields = '__all__'
         
         

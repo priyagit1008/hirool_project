@@ -4,7 +4,8 @@ import uuid
 # django/rest_framwork imports
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator,MinValueValidator
+# from django.core.validators import MinValueValidator
 # from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 # from django.utils import timezone
@@ -78,7 +79,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	first_name= models.CharField(max_length=64, blank=False,default=None)
-	last_name =models.CharField(max_length=64, blank=True,null = True,default=None)
+	last_name=models.CharField(max_length=64,null=True,blank=True)
 	email = models.EmailField(max_length=128, unique=True, db_index=True, blank=False,default=None)
 	mobile =models.BigIntegerField(
 		validators=[
@@ -88,7 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 		unique=True,
 		db_index=True,default=None,blank=False)
 	dob= models.DateField(null=True,blank=True)
-	gender=models.CharField(choices=GENDER, max_length=1,null = True, blank=True, default=GENDER.M)
+	gender=models.CharField(choices=GENDER, max_length=10,null = True, blank=True, default=GENDER.M)
 	address=models.CharField(max_length=64, blank=True,null = True,default=None)
 	qualification=models.CharField(max_length=64, blank=False,default=None)
 	specialization=models.CharField(max_length=64,null = True, blank=True,default=None)
@@ -102,11 +103,11 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 	work_loc=models.CharField(max_length=64,null = True, blank=True)
 	status= models.CharField(max_length=64, choices=STATUS,blank=True, default=STATUS.active)
 
-	profile_pic= models.ImageField(max_length=255, blank=True)
+	profile_pic= models.ImageField(max_length=255,null=True, blank=True)
 	joined_date= models.DateField(null=True,blank=True)
 	resigned_date= models.DateField(null=True,blank=True)
 	exit_date= models.DateField(null=True,blank=True)
-	reporting_to=models.CharField(max_length=64, blank=True)
+	reporting_to=models.CharField(max_length=64, null=True,blank=True)
 
 
 

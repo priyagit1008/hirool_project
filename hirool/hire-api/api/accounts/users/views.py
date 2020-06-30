@@ -93,7 +93,8 @@ class UserViewSet(GenericViewSet):
 		'forgotpass': UserPassUpdateSerializer,
 		'update_pass': UserPassUpdateSerializer,
 		'user_profile':UserListSerialize, 
-		'user_dropdown':UserDrowpdownGetSerializer  }
+		'user_dropdown':UserDrowpdownGetSerializer ,
+		'delete_user':UserListSerialize }
 
 	def get_serializer_class(self):
 		"""
@@ -114,6 +115,8 @@ class UserViewSet(GenericViewSet):
 		if serializer.is_valid() is False:
 			print(serializer.errors)
 			raise ParseException({'status':'Incorrect Input'}, serializer.errors)
+		if User.objects.filter(email=self.request.data['email']).exists():
+			return Response({"status":"User already exists"},status=status.HTTP_400_BAD_REQUEST)
 		user = serializer.create(serializer.validated_data)
 		if user:
 				# msg_plain = render_to_string('email_message.txt', {"user": user.first_name})
@@ -122,6 +125,8 @@ class UserViewSet(GenericViewSet):
 				return Response({'status':'Successfully added'}, status=status.HTTP_201_CREATED)
 		return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 		
+
+
 
 	@action(methods=['post'], detail=False, permission_classes=[])
 	def login(self, request):
@@ -148,6 +153,12 @@ class UserViewSet(GenericViewSet):
 		return Response({'token': token,"name":name,'user_id':id},
 						status=status.HTTP_200_OK)
 
+
+
+
+
+
+
 	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ])
 	def logout(self, request):
 		"""
@@ -155,6 +166,8 @@ class UserViewSet(GenericViewSet):
 		"""
 		request.user.auth_token.delete()
 		return Response(status=status.HTTP_200_OK)
+
+
 
 	@action(
 		methods=['get'],
@@ -229,7 +242,7 @@ class UserViewSet(GenericViewSet):
 	@action(
 		methods=['get', 'put'],
 		detail=False,
-		url_path='image-upload',
+		# url_path='image-upload',
 		permission_classes=[IsAuthenticated, ],
 	)
 	def exec_update(self, request):
@@ -237,20 +250,19 @@ class UserViewSet(GenericViewSet):
 		Return user update data
 		"""
 		try:
-
-			data = request.data
-			id  = request.GET.get('email', None)
-			if not id:
-				return Response({"status": "Failed", "message":"id is required"})
+			data=request.data
+			id=data["id"]
+			serializer=self.get_serializer(self.services.update_user(id),data=request.data)
+			if not serializer.is_valid():
+				print(serializer.errors)
+				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
-				serializer = self.get_serializer(self.services.update_user(id), data=request.data)
-				if not serializer.is_valid():
-					raise ParseException(BAD_REQUEST, serializer.errors)
-				else:
-					serializer.save()
-					return Response(serializer.data, status.HTTP_200_OK)
+				serializer.save()    
+				return Response({"status":"updated Successfully"},status.HTTP_200_OK)
 		except Exception as e:
-			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+			raise
+			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
+
 
 	
 
@@ -260,20 +272,32 @@ class UserViewSet(GenericViewSet):
 		"""
 		Returns single candidate details
 		"""
+		id= request.GET.get('id', None)
+		if not id:
+				return Response({"status": False, "message":"id is required"})
 		try:
-			id= request.GET.get('id', None)
-			if not id:
-				return Response({"status": "Failed", "message":"id is required"})
-
 			serializer = self.get_serializer(self.services.get_user(id))
-			# data = {
-			#   "user": serializer.data,
-			#   "user1": UserListSerializer(self.services.get_user(id)).data
-			# }
-			return Response(serializer.data,status.HTTP_200_OK)
-		except Exception as e:
+		except User.DoesNotExist:
 			raise
-			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+			return Response({"status": False}, status.HTTP_404_NOT_FOUND)
+		return Response(serializer.data, status.HTTP_200_OK)
+
+
+
+		# try:
+		# 	id= request.GET.get('id', None)
+		# 	if not id:
+		# 		return Response({"status": "Failed", "message":"id is required"})
+
+		# 	serializer = self.get_serializer(self.services.get_user(id))
+		# 	# data = {
+		# 	#   "user": serializer.data,
+		# 	#   "user1": UserListSerializer(self.services.get_user(id)).data
+		# 	# }
+		# 	return Response(serializer.data,status.HTTP_200_OK)
+		# except Exception as e:
+		# 	raise
+		# 	return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
 
 
 	@action(
@@ -382,6 +406,23 @@ class UserViewSet(GenericViewSet):
 			return Response({"status": "Successfully Updated new password"}, status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": str(e)}, status.HTTP_404_NOT_FOUND)
+
+
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,])
+	def delete_user(self,request):
+		"""
+		Returns delete interview
+		"""
+		id= request.GET.get('id', None)
+		if not id:
+				return Response({"status": False, "message":"id is required"})
+		try:
+			user_obj = self.services.get_user(id)
+		except User.DoesNotExist:
+			raise
+			return Response({"status": False}, status.HTTP_404_NOT_FOUND)
+		user_obj.delete()
+		return Response({"status":"user is deleted "}, status.HTTP_200_OK)
 	
 
 	@action(methods=['get', 'patch'],detail=False,
@@ -715,53 +756,4 @@ class ActionViewSet(GenericViewSet):
 		return Response(data, status.HTTP_200_OK)
 	
 
-#   @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], )
-#   def list_actions(self, request):
-#       """
-#       Return user profile data and groups
-#       """
-#        data=request.data
-# # user=User.objects.get(id=request.user.id).password
-# print(user)
-# if(old_password==user):
-#   print("hi")
-#   user.set_password(password)
-#   user.save()
-#   return Response({"status":"Successfully Updated password"}, status.HTTP_200_OK)
-# else:
-#   return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
-# def filter_role(self,request):
-
-#      except Exception as e:
-#          raise
-#      else:
-#          pass
-#      finally:
-#          pass
-#      data=request.data
-#      data["id"]=request.User.id
-#      d=User.objects.get(id=request.User.id)
-#      serializer = self.get_serializer(data=request.data)
-#      if not serializer.is_valid():
-#              raise ParseException(BAD_REQUEST, serializer.errors)
-#              try:
-#                  serializer.save()
-#                  return Response(serializer.data, status.HTTP_200_OK)
-#                  print(serializer.data)
-#              except Exception as e:
-#                  return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
-
-# try:
-#          data=request.data
-#          client_id=data['client_id']
-#          client_obj=myclients.objects.get(client_id=client_id)
-#          serializer = addclientSerializer(client_obj,data=data)
-#          if serializer.is_valid():
-#              serializer.save()
-#              return Response(serializer.data)
-#          else:
-#              return Response(serializer.errors)
-#      except:
-#          return Response({"status":"Bad request"})

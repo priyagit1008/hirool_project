@@ -93,8 +93,7 @@ class UserRegSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = User
-		# Tuple of serialized model fields (see link [2])
-		# fields = ( "id", "username", "password", )
+		
 		fields = ('id','email', 'first_name','last_name', 'mobile','profile_pic',
 			'dob','gender','address','qualification','specialization','marks','passing_year','anual_salary','work_loc',
 			'college','work_experience','skills','designation','status','joined_date','resigned_date','exit_date','reporting_to','password')
@@ -104,16 +103,9 @@ class UserRegSerializer(serializers.ModelSerializer):
 
 	@time_it
 	def create(self, validated_data):
-		user = User.objects.create(**validated_data
-			# email=validated_data['email'],
-			# first_name=validated_data['first_name'],
-			# last_name=validated_data['last_name'],
-			# mobile=validated_data.get('mobile', 9988776655)
-			#   # role_id=validated_data['role_id'],
-			#   image_url=validated_data['image_url']
-		)
+		user = User.objects.create(**validated_data)
 
-		user.set_password(validated_data['password'])
+		# user.set_password(validated_data['password'])
 		user.save()
 
 		return user
@@ -163,38 +155,54 @@ class UserUpdateRequestSerializer(serializers.ModelSerializer):
 	"""
 	Test ser
 	"""
-	# mobile = serializers.IntegerField(
-	#     min_value=5000000000,
-	#     max_value=9999999999
-	# )
+
 	# TODO PUT validations for update, like mobile number and all refer UserRegSerializer
 	id = serializers.CharField(required=True)
-	first_name = serializers.CharField(required=True)
-	last_name = serializers.CharField(required=True)
-	mobile = serializers.IntegerField(required=True,
+	email = serializers.EmailField(required=True)
+	first_name = serializers.CharField(required=True, min_length=2)
+	last_name = serializers.CharField(required=False, min_length=2)
+	mobile = serializers.IntegerField(
+		required=True,
 		min_value=5000000000,
-		max_value=9999999999)
-	# is_active = serializers.BooleanField(required=False)
-	
-	# def create(self, validated_data):
-	#     return User.objects.create(**validated_data)
+		max_value=9999999999
+	)
+	dob=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
+	gender=serializers.CharField(required=False)
+	address=serializers.CharField(required=False,)
+	qualification=serializers.CharField(required=False)
+	specialization=serializers.CharField(required=False)
+	marks=serializers.CharField(required=False)
+	passing_year=serializers.CharField(required=False)
+	college=serializers.CharField(required=False)
+	work_experience=serializers.CharField(required=False)
+	skills=serializers.JSONField(required=False)
+	designation=serializers.CharField(required=False)
+	anual_salary=serializers.CharField(required=False)
+	work_loc=serializers.CharField(required=False)
+	status=serializers.CharField(required=False)
+	profile_pic=serializers.ImageField(required=False)
 
+	joined_date=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
+	resigned_date=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
+	exit_date=serializers.DateField(input_formats=['%d-%m-%Y',],required=False)
+	reporting_to=serializers.CharField(required=False)
+	
 
 	def update(self, instance, validated_data):
-		instance.id = validated_data.get('id', instance.id)
-		instance.first_name= validated_data.get('first_name', instance.first_name)
-		instance.last_name = validated_data.get('last_name', instance.last_name)
-		instance.email=validated_data.get('email',instance.email)
-		instance.mobile = validated_data.get('mobile', instance.mobile)
+		for attr ,value in validated_data.items():
+			setattr(instance,attr,value)
 		instance.save()
 		return instance
 
 
 	class Meta:
 		model=User
-		fields=('id','first_name','last_name','email','mobile')
-
-
+		fields=('id','email', 'first_name','last_name', 'mobile','profile_pic',
+			'dob','gender','address','qualification','specialization','marks','passing_year','anual_salary','work_loc',
+			'college','work_experience','skills','designation','status','joined_date','resigned_date','exit_date','reporting_to')
+		# fields='__all__'
+		# write_only_fields = ('password',)
+		# read_only_fields = ('id',)
 
 
 class clientserializer(serializers.ModelSerializer):

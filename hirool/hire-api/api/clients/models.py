@@ -67,7 +67,7 @@ class Client(TimeStampedModel):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,blank=False)
-    name = models.CharField(max_length=512, default=None,blank=False)
+    name = models.CharField(max_length=512,unique=True, db_index=True, default=None,blank=False)
     web_link = models.CharField(max_length=512, default=None, blank=False)
     ceo=models.CharField(max_length=512, null = True, blank=True)
     founder=models.CharField(max_length=512,null = True, default=None,blank=True)
@@ -124,7 +124,7 @@ class Job(TimeStampedModel):
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     job_title = models.CharField(max_length=512, default=None, blank=False)
-    jd_url = models.CharField(max_length=1024, default=None, blank=True)
+    jd_url = models.CharField(max_length=1024, default=None,null=True, blank=True)
     tech_skills = JSONField(default={}, blank=True, null=True)
     job_location = models.CharField(max_length=512, default=None, null=True, blank=True)
     job_type = models.CharField(max_length=256, choices=JOB_TYPE, default=JOB_TYPE.permanent)

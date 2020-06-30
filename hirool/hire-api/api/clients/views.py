@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
+from rest_framework import serializers
+
 # from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from accounts.users.permissions import HiroolReadOnly,HiroolReadWrite
@@ -72,6 +74,8 @@ class ClientViewSet(GenericViewSet):
 		'org_dropdown_list':ClientDrowpdownGetSerializer,
 		'org_update': ClientUpdateSerializer,
 		'org_get':ClientGetSerializer,
+		'delete_client': ClientListSerializer,
+
 		# 'org_dropdown':ClientGetSerializer,
 
 	}
@@ -95,6 +99,9 @@ class ClientViewSet(GenericViewSet):
 		serializer = self.get_serializer(data=request.data)
 		if serializer.is_valid() is False:
 			raise ParseException({'status':'Incorrect input'}, serializer.errors)
+		# if Client.objects.filter(email=self.request.data['email']).exists():
+		if Client.objects.filter(name=self.request.data['name']).exists():
+			return Response({"status":"Client already exists"},status=status.HTTP_400_BAD_REQUEST)
 
 		print("create client with", serializer.validated_data)
 
@@ -167,7 +174,7 @@ class ClientViewSet(GenericViewSet):
 				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
 				serializer.save()    
-				return Response(serializer.data,status.HTTP_200_OK)
+				return Response({"status":"updated Successfully"},status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
@@ -183,13 +190,32 @@ class ClientViewSet(GenericViewSet):
 		Return client singal data and groups
 		"""
 		# print(request)
+		id= request.GET.get('id', None)
+		if not id:
+				return Response({"status": False, "message":"id is required"})
 		try:
-			id=request.GET["id"]
 			serializer=self.get_serializer(self.services.get_client_service(id))
-			print(id)
-			return Response(serializer.data,status.HTTP_200_OK)
-		except Exception as e:
-			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+		except Client.DoesNotExist:
+			raise
+			return Response({"status": False}, status.HTTP_404_NOT_FOUND)
+		return Response(serializer.data, status.HTTP_200_OK)
+			
+
+	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,])
+	def delete_client(self,request):
+		"""
+		Returns delete interview
+		"""
+		id= request.GET.get('id', None)
+		if not id:
+				return Response({"status": False, "message":"id is required"})
+		try:
+			client_obj = self.services.get_client_service(id)
+		except Client.DoesNotExist:
+			raise
+			return Response({"status": False}, status.HTTP_404_NOT_FOUND)
+		client_obj.delete()
+		return Response({"status":"clients is deleted "}, status.HTTP_200_OK)
 			
 
 
@@ -427,26 +453,7 @@ class JobViewSet(GenericViewSet):
 				return Response(serializer.data, status.HTTP_200_OK)
 		except Exception as e:
 			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
-
-		# try:
-		# 	id = request.GET["id"]
-		# 	serializer=self.get_serializer(self.services.get_job_service(id))
-		# 	print(serializer)
-		# 	return Response(serializer.data,status.HTTP_200_OK)
-		# except Exception as e:
-		# 	return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
-
-
-
-
-	# @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,HiroolReadWrite],)
-	# def job_list(self, request):
-	#   """
-	#   """
-	#   data = self.get_serializer(self.queryset, many=True).data
-	#   return Response(data, status.HTTP_200_OK)
-
+			
 	
 
 	@action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,],)
@@ -476,7 +483,7 @@ class JobViewSet(GenericViewSet):
 				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
 				serializer.save()
-				return Response(serializer.data,status.HTTP_200_OK)
+				return Response({"status":"updated Successfully"},status.HTTP_200_OK)
 		except Exception as e:
 			raise
 			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)

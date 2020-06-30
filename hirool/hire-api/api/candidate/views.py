@@ -78,7 +78,7 @@ class CandidateViewSet(GenericViewSet):
 			raise ParseException(BAD_ACTION, errors=key)
 
 
-	@action(methods=['post'], detail=False, permission_classes=[],)
+	@action(methods=['post'], detail=False, permission_classes=[IsAuthenticated,],)
 	def candidate(self,request):
 		"""
 		Returns candidate account creation
@@ -88,6 +88,9 @@ class CandidateViewSet(GenericViewSet):
 			print(serializer.errors)
 
 			raise ParseException({'status':'Incorrect Input'}, serializer.errors)
+
+		if Candidate.objects.filter(email=self.request.data['email']).exists():
+			return Response({"status":"candidate already exists"},status=status.HTTP_400_BAD_REQUEST)
 
 		print("create candidate with", serializer.validated_data)
 		candidate= serializer.create(serializer.validated_data)
@@ -123,15 +126,15 @@ class CandidateViewSet(GenericViewSet):
 		"""
 		Returns single candidate details
 		"""
+		id= request.GET.get('id', None)
+		if not id:
+				return Response({"status": False, "message":"id is required"})
 		try:
-			id= request.GET.get('id', None)
-			if not id:
-				return Response({"status": "Failed", "message":"id is required"})
-			else:
-				serializer = self.get_serializer(self.services.get_candidate_service(id))
-				return Response(serializer.data,status.HTTP_200_OK)
-		except Exception as e:
-			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+			serializer = self.get_serializer(self.services.get_candidate_service(id))
+		except Candidate.DoesNotExist:
+			raise
+			return Response({"status": False}, status.HTTP_404_NOT_FOUND)
+		return Response(serializer.data, status.HTTP_200_OK)
 
 
 
@@ -143,16 +146,16 @@ class CandidateViewSet(GenericViewSet):
 		"""
 		try:
 			data=request.data
-			id=data['id']
+			id=data["id"]
 			serializer=self.get_serializer(self.services.update_candidate_service(id),data=request.data)
 			if not serializer.is_valid():
 				raise ParseException(BAD_REQUEST,serializer.errors)
 			else:
-				serializer.save()
-				return Response(serializer.data,status.HTTP_200_OK)
+				serializer.save()    
+				return Response({"status":"updated Successfully"},status.HTTP_200_OK)
 		except Exception as e:
 			raise
-			return Response({"status": "Not Found"}, status.HTTP_404_NOT_FOUND)
+			return Response({"status":"Not Found"},status.HTTP_404_NOT_FOUND)
 
 
 	@action(methods=['get'],detail=False,permission_classes=[IsAuthenticated,],)
